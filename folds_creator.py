@@ -1,6 +1,6 @@
 import math
 import os
-class k_fold_cross_validation:
+class folds_creator:
     def __init__(self,k,train_file, number_of_queries=-1,fold_prefix="fold"):
         self.k = k
         self.train_file = train_file
