@@ -1,4 +1,5 @@
-import folds_creator
+import cross_validator as cv
 
 if __name__=="__main__":
-    print("")
+    cross_validator = cv.cross_validator(3,"/features.txt",3)
+    cross_validator.k_fold_cross_validation()
