@@ -33,7 +33,7 @@ class cross_validator:
     def create_validation_set_for_ltr(self, validation):
 
         validation_set = self.folds_creator.folds[validation]
-        path = os.path.dirname(__file__) + "\\"
+        path = os.path.dirname(__file__) + "/"
         absolute_path = os.path.abspath(path+"validation.txt")
         if os.path.isfile(absolute_path):  # TODO: make more genric
             os.remove(absolute_path)
@@ -45,7 +45,7 @@ class cross_validator:
     def create_test_set_for_ltr(self, test):
 
         test_set = self.folds_creator.folds[test]
-        path = os.path.dirname(__file__) + "\\"
+        path = os.path.dirname(__file__) + "/"
         absolute_path = os.path.abspath(path + "test.txt")
         if os.path.isfile(absolute_path):  # TODO: make more genric
             os.remove(absolute_path)
