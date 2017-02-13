@@ -21,7 +21,7 @@ class cross_validator:
             if fold not in not_train:
                 train_set.extend(folds[fold])
         path = os.path.dirname(__file__)+"\\"
-        absolute_path = os.path._getfullpathname(path+ "train.txt")
+        absolute_path = os.path.abspath(path+ "train.txt")
         if os.path.isfile("/train.txt"):#TODO: make more genric
             os.remove(absolute_path)
         file_for_ltr = open('train.txt', 'w')
@@ -34,7 +34,7 @@ class cross_validator:
 
         validation_set = self.folds_creator.folds[validation]
         path = os.path.dirname(__file__) + "\\"
-        absolute_path = os.path._getfullpathname(path+"validation.txt")
+        absolute_path = os.path.abspath(path+"validation.txt")
         if os.path.isfile(absolute_path):  # TODO: make more genric
             os.remove(absolute_path)
         file_for_ltr = open(absolute_path, 'w')
@@ -46,7 +46,7 @@ class cross_validator:
 
         test_set = self.folds_creator.folds[test]
         path = os.path.dirname(__file__) + "\\"
-        absolute_path = os.path._getfullpathname(path + "test.txt")
+        absolute_path = os.path.abspath(path + "test.txt")
         if os.path.isfile(absolute_path):  # TODO: make more genric
             os.remove(absolute_path)
         file_for_ltr = open(absolute_path, 'w')
@@ -66,7 +66,7 @@ class cross_validator:
         self.create_train_set_for_ltr(prefix+str(test_fold),prefix+str(validation_fold))
         self.create_validation_set_for_ltr(prefix+str(validation_fold))
         self.create_test_set_for_ltr(prefix+str(test_fold))
-        command = 'java -jar RankLib-2.3.jar -train train.txt -test test.txt' \
+        command = 'java -jar RankLib.jar -train train.txt -test test.txt' \
                   ' -validate validation.txt -ranker 6 -metric2t NDCG@20 -metric2T '+metric+' ' \
                   '-tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves) #+' -save myModel'+str(test_fold)+'.txt'
         for output_line in self.run_command(command):

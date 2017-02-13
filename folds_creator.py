@@ -1,5 +1,6 @@
 import math
 import os
+
 class folds_creator:
     def __init__(self,k,train_file, number_of_queries=-1,fold_prefix="fold"):
         self.k = k
@@ -29,7 +30,7 @@ class folds_creator:
 
         path = os.path.dirname(__file__)+"\\"
         print(path)
-        absolute_path = os.path._getfullpathname(path+self.train_file)
+        absolute_path = os.path.abspath(path+self.train_file)
         folds = {}
         with open(absolute_path) as train_set:
             for doc in train_set:
