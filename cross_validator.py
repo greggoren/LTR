@@ -66,7 +66,7 @@ class cross_validator:
         self.create_train_set_for_ltr(prefix+str(test_fold),prefix+str(validation_fold))
         self.create_validation_set_for_ltr(prefix+str(validation_fold))
         self.create_test_set_for_ltr(prefix+str(test_fold))
-        command = 'java -jar RankLib-2.5.jar -train train.txt -test test.txt' \
+        command = 'java -jar ./RankLib-2.5.jar -train train.txt -test test.txt' \
                   ' -validate validation.txt -ranker 6 -metric2t NDCG@20 -metric2T '+metric+' ' \
                   '-tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves) #+' -save myModel'+str(test_fold)+'.txt'
         for output_line in self.run_command(command):
