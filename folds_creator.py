@@ -28,7 +28,7 @@ class folds_creator:
 
     def go_over_train_file_and_split_to_folds(self, query_to_fold):
 
-        path = os.path.dirname(__file__)+"\\"
+        path = os.path.dirname(__file__)+"/"
         print(path)
         absolute_path = os.path.abspath(path+self.train_file)
         folds = {}
