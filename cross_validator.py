@@ -57,7 +57,8 @@ class cross_validator:
     def run_command(self,command):
         p = subprocess.Popen(command,
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+                             stderr=subprocess.STDOUT,
+                             shell=True)
         return iter(p.stdout.readline, b'')
 
     def run_cross_validation_with_lambda_mart(self, test_fold, validation_fold,number_of_trees,number_of_leaves,metric):
