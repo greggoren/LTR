@@ -11,7 +11,7 @@ class cross_validator:
         self.k =k
         self.number_of_trees_for_test = [500, 250]
         self.number_of_leaves_for_test = [5, 10]
-        self.test_metric = ["NDCG@20","P@10","P@5","MAP"]
+        self.test_metric = ["NDCG@20", "P@10", "P@5", "MAP"]
         self.svm_c_params_to_test = [0.1, 0.01, 0.001]
 
 
@@ -23,7 +23,7 @@ class cross_validator:
         for fold in folds:
             if fold not in not_train:
                 train_set.extend(folds[fold])
-        path = os.path.dirname(__file__)+"\\"
+        path = os.path.dirname(__file__)+"/"
         absolute_path = os.path.abspath(path+ "train.txt")
         if os.path.isfile("/train.txt"):
             os.remove(absolute_path)
