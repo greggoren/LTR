@@ -1,10 +1,11 @@
-
+from copy import deepcopy
 import folds_creator as fc
 import os
 import subprocess
-
+import multiprocessing as mp
+import evaluator
 class cross_validator:
-    def __init__(self,k,train_data,number_of_queries=-1,fold_prefix = "folds"):
+    def __init__(self,k,train_data,data_set,number_of_queries=-1,fold_prefix = "folds"):
         self.folds_creator = fc.folds_creator(k,train_data,number_of_queries,fold_prefix)
         self.folds_creator.split_train_file_into_folds()
         self.fold_prefix = fold_prefix
@@ -13,9 +14,133 @@ class cross_validator:
         self.number_of_leaves_for_test = [5, 10]
         self.test_metric = ["NDCG@20", "P@10", "P@5", "MAP"]
         self.svm_c_params_to_test = [0.1, 0.01, 0.001]
+        self.data_set = data_set
 
 
-    def create_train_set_for_ltr(self,test,validation):
+
+
+    def run_command(self,command):
+        p = subprocess.Popen(command,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             shell=True)
+        return iter(p.stdout.readline, b'')
+
+    def create_model_lmbda_mart(self, number_of_trees, number_of_leaves, train_file,model_directory):
+
+        command = 'java -jar ./RankLib-2.5.jar -train '+train_file+ \
+                  ' -ranker 6 -qrel qrels.txt -metric2t NDCG@20'\
+                  ' -tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves) +\
+                  ' -save '+model_directory+'/model_'+str(number_of_trees)+"_"+str(number_of_leaves)+'.txt'
+
+        for output_line in self.run_command(command):
+            output_line+=""
+            #print(output_line)
+
+
+    def run_model_lmbda_mart(self,model_file,test_file,score_directory):
+        score_file_prefix_with_extension=os.path.basename(model_file)
+        score_file_prefix = os.path.splitext(score_file_prefix_with_extension)[0]
+        run_command = 'java -jar ./RankLib-2.5.jar -load ' + model_file + \
+                  ' -rank '+test_file+' -score '+score_directory+'/'+score_file_prefix+'_score.txt'
+        for output_line in self.run_command(run_command):
+            print(output_line)
+
+        command = 'cut -f3 '+score_directory+'/'+score_file_prefix+'_score.txt > '+score_directory+'/'+score_file_prefix+'_score.txt'
+        """if os.name == 'nt':
+            command = "for "+score_directory+"/"+score_file_prefix+"_score.txt \"tokens=5 delims=  \" %i in (file.txt) DO echo %i >> "+score_directory+"/"+score_file_prefix+"_qscore.txt"""""
+        for output_line in self.run_command(command):
+            output_line+""
+            #print(output_line)#
+
+    def run_lmbda_mart_models_on_validation_set_and_pick_the_best(self, models_dir, validation_file, score_directory, scores_in_trec_format_path):
+        models_dirs = os.walk(models_dir)
+        evaluation =  evaluator.evaluator()
+        evaluation.prepare_index_of_test_file(validation_file)
+        for models_dir in models_dirs:
+            if not models_dir[1]:
+                for model in models_dir[2]:
+                    model_file = models_dir[0]+"/"+model
+                    self.run_model_lmbda_mart(model_file,validation_file,score_directory)
+                for scores_dir_data in os.walk(score_directory):
+                    if not scores_dir_data[1]:
+                        for scores_file_name in scores_dir_data[2]:
+                            scores_file = scores_dir_data[0]+"/"+scores_file_name
+                            evaluation.create_file_in_trec_eval_format(scores_file,scores_in_trec_format_path)
+
+    def k_fold_cross_validation(self,model):
+        dirs = os.walk(self.folds_creator.working_path)
+        result_dir = os.path.abspath(os.path.join(self.folds_creator.working_path,os.pardir))
+        for dir in dirs:
+            if not dir[1]:#no subdirectories
+                dir_name = os.path.basename(dir[0])
+
+                print("@@@",dir_name)
+                models_path = result_dir+"/"+self.data_set+"/models"+"/"+dir_name +"_models"
+                if not os.path.exists(models_path):
+                    os.makedirs(models_path)
+                scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+dir_name + "_scores"
+                scores_in_trec_format_path = result_dir+"/"+self.data_set+"/final_format_scores"+"/"+dir_name
+                if not os.path.exists(scores_path):
+                    os.makedirs(scores_path)
+                if not os.path.exists(scores_in_trec_format_path):
+                    os.makedirs(scores_in_trec_format_path)
+                if model == "LAMBDAMART":
+                    self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
+                    self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path)
+
+    def lambda_mart_models_creator(self, train_file,models_directory):
+        for number_of_trees in self.number_of_trees_for_test:
+            for number_of_leaves in self.number_of_leaves_for_test:
+                self.create_model_lmbda_mart(number_of_trees, number_of_leaves, train_file,models_directory)
+
+
+    def k_fold_cross_validation_svm(self):
+        for c_value in self.svm_c_params_to_test:
+            for phase in range(1,self.k+1):
+                self.run_cross_validation_with_svm(c_value)
+
+
+
+    def run_cross_validation_with_svm(self,c_value):
+        learning_command = "svm_rank_learn -c "+str(c_value)+" train.txt svm_model.txt"
+        for output_line in self.run_command(learning_command):
+            print(output_line)
+
+        #TODO:handle what happens if no model file created
+
+        test_command = "svm_rank_classify test.txt svm_model.txt predictions.txt"
+        for output_line in self.run_command(test_command):
+            print(output_line)
+
+        #TODO:handle what happens if no predictions file created
+
+        self.evaluate_svm("predictions.txt")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """ def create_train_set_for_ltr(self,test,validation):
 
         folds = self.folds_creator.folds
         not_train = [test,validation]
@@ -55,67 +180,22 @@ class cross_validator:
         file_for_ltr = open(absolute_path, 'w')
         for test_data in test_set:
             file_for_ltr.write("%s" % test_data)
-        file_for_ltr.close()
+        file_for_ltr.close()"""
 
-    def run_command(self,command):
-        p = subprocess.Popen(command,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             shell=True)
-        return iter(p.stdout.readline, b'')
+    """    def run_cross_validation_for_models(self,model):
+        if model == "SVMRANK":
+            self.k_fold_cross_validation_svm()
+        elif model == "LAMBDAMART":
+            self.lambda_mart_models_creator()
+        elif model == "ALL":#TODO to be tested
+            svm_process = mp.Process(name='svm',target=self.k_fold_cross_validation_svm)
+            lambdamart_process = mp.Process(name='lmbda', target=self.lambda_mart_models_creator)
+            process_handler = [svm_process,lambdamart_process]
 
-    def run_cross_validation_with_lambda_mart(self, test_fold, validation_fold,number_of_trees,number_of_leaves,metric):
+            for process in process_handler:
+                process.start()
 
-        prefix = self.folds_creator.fold_prefix
-        self.create_train_set_for_ltr(prefix+str(test_fold),prefix+str(validation_fold))
-        self.create_validation_set_for_ltr(prefix+str(validation_fold))
-        self.create_test_set_for_ltr(prefix+str(test_fold))
-        command = 'java -jar ./RankLib-2.5.jar -train train.txt -test test.txt' \
-                  ' -validate validation.txt -ranker 6 -qrel qrels.txt -metric2t '+metric + ' -metric2T '+metric+' ' \
-                  '-tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves)
-        for output_line in self.run_command(command):
-            print(output_line)
-            if "on test data:" in str(output_line):
-                score = str(output_line).split("on test data:")[1]
-                return score
-
-    def k_fold_cross_validation_lambdamart(self):
-        results_file = open("results.txt",'w')
-        results_file.write("#trees\t#leaves\tscore\tmetric\n")
-        for metric in self.test_metric:
-            for number_of_trees in self.number_of_trees_for_test:
-                for number_of_leaves in self.number_of_leaves_for_test:
-                    mean_score = 0
-                    for phase in range(2,self.k+1):
-                        score = self.run_cross_validation_with_lambda_mart(phase, phase - 1,number_of_trees,number_of_leaves,metric)
-                        score = score.split('\\r\\n')[0]
-                        mean_score += float(score)
-                    mean_score += float(self.run_cross_validation_with_lambda_mart(1, 3,number_of_trees,number_of_leaves,metric).split('\\r\\n')[0])
-                    mean_score = mean_score/self.k
-                    results_file.write(str(number_of_trees)+"\t"+str(number_of_leaves)+"\t"+str(mean_score)+"\t"+metric+"\n")
-        results_file.close()
-
-    def k_fold_cross_validation_svm(self):
-        for c_value in self.svm_c_params_to_test:
-            for phase in range(1,self.k+1):
-                self.run_cross_validation_with_svm(c_value)
-        print("")
-
-
-    def evaluate_svm(self,prediction_file):
-        print()
-
-    def run_cross_validation_with_svm(self,c_value):
-        learning_command = "svm_rank_learn -c "+str(c_value)+" train.txt svm_model.txt"
-        for output_line in self.run_command(learning_command):
-            print(output_line)
-
-        #TODO:handle what happens if no model file created
-
-        test_command = "svm_rank_classify test.txt svm_model.txt predictions.txt"
-        for output_line in self.run_command(test_command):
-            print(output_line)
-
-        #TODO:handle what happens if no predictions file created
-
-        self.evaluate_svm("predictions.txt")
+            for process in process_handler:
+                process.join()
+        else:
+            raise Exception("A wrong parameter was entered for which model to run")"""

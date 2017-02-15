@@ -8,6 +8,7 @@ class folds_creator:
         self.number_of_queries = number_of_queries
         self.fold_prefix = fold_prefix
         self.folds = {}
+        self.working_path = ""
 
 
     def init_files(self, number_of_queries_in_fold):
@@ -44,8 +45,57 @@ class folds_creator:
 
         return folds
 
+    def create_folds_splited_into_folders(self):
+        print("starting working set creation")
+        path = os.path.dirname(__file__)
+        parent_path = os.path.abspath(os.path.join(path, os.pardir))
+        if not os.path.exists(parent_path + "/working_sets"):
+            os.makedirs(parent_path + "/working_sets")
+        self.working_path = working_path = parent_path+"/working_sets/"
+
+        for fold in range(2,self.k+1):
+            self.create_files_in_working_folder(fold,fold-1,working_path)
+        self.create_files_in_working_folder(1,self.k,working_path)
+        print("working set creation is done")
+
+
+    def create_files_in_working_folder(self,test_fold,validation_fold,path):
+        if not os.path.exists(path+"fold"+str(test_fold)):
+            os.makedirs(path+"fold"+str(test_fold))
+        print("creating fold"+str(test_fold))
+        not_train = [self.fold_prefix+str(test_fold),self.fold_prefix+str(validation_fold)]
+        train_set = []
+        for fold in self.folds:
+            if fold not in not_train:
+                print(fold)
+                train_set.extend(self.folds[fold])
+
+        train_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "train.txt")
+        train_for_ltr = open(train_path, 'w')
+        for train_data in train_set:
+            train_for_ltr.write("%s" % train_data)
+        train_for_ltr.close()
+        print("finished train.txt")
+        validation_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "validation.txt")
+        validation_file = open(validation_path,'w')
+        validation_set = self.folds[self.fold_prefix+str(validation_fold)]
+        for validation_data in validation_set:
+            validation_file.write("%s" % validation_data)
+        validation_file.close()
+        print("finished validation.txt")
+        test_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "test.txt")
+        test_file = open(test_path,'w')
+        test_set = self.folds[self.fold_prefix+str(test_fold)]
+        for test_data in test_set:
+            test_file.write(test_data)
+        test_file.close()
+        print("finished test.txt")
+
+
+
 
     def split_train_file_into_folds(self):
-        number_of_queries_in_file = math.floor(self.number_of_queries/self.k) #in python 3 it is a float
+        number_of_queries_in_file = math.floor(float(float(self.number_of_queries)/self.k))
         query_to_fold = self.init_files(number_of_queries_in_file)
         self.folds = self.go_over_train_file_and_split_to_folds(query_to_fold)
+        self.create_folds_splited_into_folders()
