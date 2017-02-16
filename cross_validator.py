@@ -117,9 +117,8 @@ class cross_validator:
 
     def run_chosen_model_on_test_lambda_mart(self,fold,models_path,test_file,score_dir):
         key =fold
-        print (key)
+        print ("key",key)
         model_file_name = models_path+"/"+self.chosen_models[key]
-        print("@#$",model_file_name)
         self.run_model_lmbda_mart(model_file_name,test_file,score_dir)
 
 
