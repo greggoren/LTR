@@ -88,9 +88,13 @@ class cross_validator:
                     os.makedirs(scores_path)
                 if not os.path.exists(scores_in_trec_format_path):
                     os.makedirs(scores_in_trec_format_path)
+                scores_path_final = scores_in_trec_format_path+"/final"
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
+                    if not os.path.exists(scores_path_final):
+                        os.makedirs(scores_path_final)
+                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",scores_path_final)
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
@@ -107,6 +111,13 @@ class cross_validator:
             learning_command = "svm_rank_learn.exe -c " + str(c_value) + " "+train_file+" "+models_directory+"/svm_model"+str(c_value)+".txt"
             for output_line in self.run_command(learning_command):
                 print(output_line)
+
+
+
+    def run_chosen_model_on_test_lambda_mart(self,fold,models_path,test_file,score_dir):
+        model_file_name = models_path+"/"+self.chosen_models[fold]
+        self.run_model_lmbda_mart(model_file_name,test_file,score_dir)
+
 
     def run_svm_on_validation_set_and_pick_the_best(self,models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)
