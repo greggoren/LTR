@@ -15,6 +15,7 @@ class cross_validator:
         self.test_metric = ["NDCG@20", "P@10", "P@5", "MAP"]
         self.svm_c_params_to_test = [0.1, 0.01, 0.001]
         self.data_set = data_set
+        self.chosen_models = {}
 
 
 
@@ -46,14 +47,12 @@ class cross_validator:
         for output_line in self.run_command(run_command):
             print(output_line)
 
-        command = 'cut -f3 '+score_directory+'/'+score_file_prefix+'_score.txt > '+score_directory+'/'+score_file_prefix+'_score.txt'
-        """if os.name == 'nt':
-            command = "for "+score_directory+"/"+score_file_prefix+"_score.txt \"tokens=5 delims=  \" %i in (file.txt) DO echo %i >> "+score_directory+"/"+score_file_prefix+"_qscore.txt"""""
-        for output_line in self.run_command(command):
-            output_line+""
+        #command = 'cut -f3 '+score_directory+'/'+score_file_prefix+'_score.txt > '+score_directory+'/'+score_file_prefix+'_score.txt'
+        #for output_line in self.run_command(command):
+         #   output_line+""
             #print(output_line)#
 
-    def run_lmbda_mart_models_on_validation_set_and_pick_the_best(self, models_dir, validation_file, score_directory, scores_in_trec_format_path):
+    def run_lmbda_mart_models_on_validation_set_and_pick_the_best(self, models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)
         evaluation =  evaluator.evaluator()
         evaluation.prepare_index_of_test_file(validation_file)
@@ -62,11 +61,16 @@ class cross_validator:
                 for model in models_dir[2]:
                     model_file = models_dir[0]+"/"+model
                     self.run_model_lmbda_mart(model_file,validation_file,score_directory)
-                for scores_dir_data in os.walk(score_directory):
-                    if not scores_dir_data[1]:
-                        for scores_file_name in scores_dir_data[2]:
-                            scores_file = scores_dir_data[0]+"/"+scores_file_name
-                            evaluation.create_file_in_trec_eval_format(scores_file,scores_in_trec_format_path)
+        for scores_dir_data in os.walk(score_directory):
+            if not scores_dir_data[1]:#no subdirectories
+                for scores_file_name in scores_dir_data[2]:
+                    scores_file = scores_dir_data[0]+"/"+scores_file_name
+                    evaluation.create_file_in_trec_eval_format(scores_file,scores_in_trec_format_path,'RANKLIB')
+        for final_score_dir in os.walk(scores_in_trec_format_path):
+            if not final_score_dir[1]:
+                evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0],qrel_path)
+                fold = os.path.basename(final_score_dir[0])
+                self.chosen_models[fold] = evaluation.chosen_model
 
     def k_fold_cross_validation(self,model):
         dirs = os.walk(self.folds_creator.working_path)
@@ -75,8 +79,7 @@ class cross_validator:
             if not dir[1]:#no subdirectories
                 dir_name = os.path.basename(dir[0])
 
-                print("@@@",dir_name)
-                models_path = result_dir+"/"+self.data_set+"/models"+"/"+dir_name +"_models"
+                models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name +"_models"
                 if not os.path.exists(models_path):
                     os.makedirs(models_path)
                 scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+dir_name + "_scores"
@@ -87,7 +90,11 @@ class cross_validator:
                     os.makedirs(scores_in_trec_format_path)
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
-                    self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path)
+                    self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
+                elif model == "SVM":
+                    self.svm_models_creator(dir[0] + "/train.txt",models_path)
+                    self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
+
 
     def lambda_mart_models_creator(self, train_file,models_directory):
         for number_of_trees in self.number_of_trees_for_test:
@@ -95,10 +102,38 @@ class cross_validator:
                 self.create_model_lmbda_mart(number_of_trees, number_of_leaves, train_file,models_directory)
 
 
-    def k_fold_cross_validation_svm(self):
+    def svm_models_creator(self,train_file,models_directory):
         for c_value in self.svm_c_params_to_test:
-            for phase in range(1,self.k+1):
-                self.run_cross_validation_with_svm(c_value)
+            learning_command = "svm_rank_learn.exe -c " + str(c_value) + " "+train_file+" "+models_directory+"/svm_model"+str(c_value)+".txt"
+            for output_line in self.run_command(learning_command):
+                print(output_line)
+
+    def run_svm_on_validation_set_and_pick_the_best(self,models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
+        models_dirs = os.walk(models_dir)
+        evaluation = evaluator.evaluator()
+        evaluation.prepare_index_of_test_file(validation_file)
+        for models_dir in models_dirs:
+            if not models_dir[1]:
+                for model in models_dir[2]:
+                    model_file = models_dir[0] + "/" + model
+                    self.run_model_svm(model_file, validation_file, score_directory)
+        for scores_dir_data in os.walk(score_directory):
+            if not scores_dir_data[1]:  # no subdirectories
+                for scores_file_name in scores_dir_data[2]:
+                    scores_file = scores_dir_data[0] + "/" + scores_file_name
+                    evaluation.create_file_in_trec_eval_format(scores_file, scores_in_trec_format_path, 'RANKLIB')
+        for final_score_dir in os.walk(scores_in_trec_format_path):
+            if not final_score_dir[1]:
+                evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0], qrel_path)
+                fold = os.path.basename(final_score_dir[0])
+                self.chosen_models[fold] = evaluation.chosen_model
+
+
+    def run_model_svm(self,model_file, test_file, score_directory):
+        model_name = os.path.basename(model_file)
+        test_command = "svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
+        for output_line in self.run_command(test_command):
+            print(output_line)
 
 
 
