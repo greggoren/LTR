@@ -5,7 +5,7 @@ import subprocess
 import multiprocessing as mp
 import evaluator
 class cross_validator:
-    def __init__(self,k,train_data,data_set,number_of_queries=-1,fold_prefix = "folds"):
+    def __init__(self,k,train_data,data_set,number_of_queries=-1,fold_prefix = "fold"):
         self.folds_creator = fc.folds_creator(k,train_data,number_of_queries,fold_prefix)
         self.folds_creator.split_train_file_into_folds()
         self.fold_prefix = fold_prefix
@@ -69,7 +69,8 @@ class cross_validator:
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0],qrel_path)
-                fold = os.path.basename(final_score_dir[0])
+                fold = os.path.basename(os.path.dirname(final_score_dir[0]))
+                print ("f,",fold)
                 self.chosen_models[fold] = evaluation.chosen_model
 
     def k_fold_cross_validation(self,model):
@@ -115,7 +116,8 @@ class cross_validator:
 
 
     def run_chosen_model_on_test_lambda_mart(self,fold,models_path,test_file,score_dir):
-        key = "00"+fold.split(self.fold_prefix)[0]
+        key =fold
+        print (key)
         model_file_name = models_path+"/"+self.chosen_models[key]
         print("@#$",model_file_name)
         self.run_model_lmbda_mart(model_file_name,test_file,score_dir)
@@ -138,7 +140,7 @@ class cross_validator:
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0], qrel_path)
-                fold = os.path.basename(final_score_dir[0])
+                fold = os.path.basename(os.path.dirname(final_score_dir[0]))
                 self.chosen_models[fold] = evaluation.chosen_model
 
 
