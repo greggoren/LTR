@@ -69,9 +69,12 @@ class cross_validator:
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0],qrel_path)
-                fold = os.path.basename(os.path.dirname(final_score_dir[0]))
+                print (final_score_dir[0])
+                print (os.path.dirname(final_score_dir[0]))
+                fold = os.path.basename(final_score_dir[0])
                 print ("f,",fold)
                 self.chosen_models[fold] = evaluation.chosen_model
+                print('e',evaluation.chosen_model)
 
     def k_fold_cross_validation(self,model):
         dirs = os.walk(self.folds_creator.working_path)
@@ -89,7 +92,7 @@ class cross_validator:
                     os.makedirs(scores_path)
                 if not os.path.exists(scores_in_trec_format_path):
                     os.makedirs(scores_in_trec_format_path)
-                scores_path_final = scores_in_trec_format_path+"/final"
+                scores_path_final = result_dir+"/"+self.data_set+"/test_scores/"+dir_name
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
