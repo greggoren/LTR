@@ -88,18 +88,18 @@ class cross_validator:
                     os.makedirs(scores_in_trec_format_path)
                 test_scores_path = result_dir+"/"+self.data_set+"/test_scores/"+dir_name
                 final_test_scores_in_trec_format = result_dir+"/"+self.data_set+"/test_scores_trec_format/"+dir_name
+                if not os.path.exists(test_scores_path):
+                    os.makedirs(test_scores_path)
+                if not os.path.exists(final_test_scores_in_trec_format):
+                    os.makedirs(final_test_scores_in_trec_format)
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
-                    if not os.path.exists(test_scores_path):
-                        os.makedirs(test_scores_path)
-                    if not os.path.exists(final_test_scores_in_trec_format):
-                        os.makedirs(final_test_scores_in_trec_format)
                     self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,"./qrels.txt")
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
-
+                    self.run_svm_on_test_set(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,"./qrels.txt ")
 
     def lambda_mart_models_creator(self, train_file,models_directory):
         for number_of_trees in self.number_of_trees_for_test:
@@ -147,13 +147,26 @@ class cross_validator:
 
     def run_model_svm(self,model_file, test_file, score_directory):
         model_name = os.path.basename(model_file)
+        score_file = score_directory+"/"+model_name
         test_command = "svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
         for output_line in self.run_command(test_command):
             print(output_line)
+        return score_file
+
+    def run_svm_on_test_set(self,fold,models_path,test_file,score_dir,final_score_directory,qrel_path):
+        key = fold
+        model_file_name = models_path + "/" + self.chosen_models[key]
+        score_file = self.run_model_svm(model_file_name, test_file, score_dir)
+        evaluation = evaluator.evaluator()
+        evaluation.prepare_index_of_test_file(test_file)
+        final_score_trec_file = evaluation.create_file_in_trec_eval_format(score_file, final_score_directory, '')
+        evaluation.run_trec_eval_on_test_file(qrel_path, final_score_trec_file)
 
 
 
-    def run_cross_validation_with_svm(self,c_value):
+
+
+    """def run_cross_validation_with_svm(self,c_value):
         learning_command = "svm_rank_learn -c "+str(c_value)+" train.txt svm_model.txt"
         for output_line in self.run_command(learning_command):
             print(output_line)
@@ -166,7 +179,7 @@ class cross_validator:
 
         #TODO:handle what happens if no predictions file created
 
-        self.evaluate_svm("predictions.txt")
+        self.evaluate_svm("predictions.txt")"""
 
 
 
