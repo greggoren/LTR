@@ -50,7 +50,6 @@ class evaluator:
             command = "sort -k1,1 -k5 < "+str(trec_eval_formatted_file_before_sort)+" > "+str(trec_eval_formatted_file_final)
             for output_line in self.run_command(command):
                 print(output_line)
-            os.remove(str(trec_eval_formatted_file_before_sort))
         return trec_eval_formatted_file_final
 
 
