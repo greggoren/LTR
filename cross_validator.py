@@ -47,11 +47,6 @@ class cross_validator:
         for output_line in self.run_command(run_command):
             print(output_line)
 
-        #command = 'cut -f3 '+score_directory+'/'+score_file_prefix+'_score.txt > '+score_directory+'/'+score_file_prefix+'_score.txt'
-        #for output_line in self.run_command(command):
-         #   output_line+""
-            #print(output_line)#
-
     def run_lmbda_mart_models_on_validation_set_and_pick_the_best(self, models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)
         evaluation =  evaluator.evaluator()
