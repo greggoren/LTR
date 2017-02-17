@@ -59,7 +59,6 @@ class cross_validator:
             if not models_dir[1]:
                 for model in models_dir[2]:
                     model_file = models_dir[0]+"/"+model
-                    print("model file",model_file)
                     self.run_model_lmbda_mart(model_file,validation_file,score_directory)
         for scores_dir_data in os.walk(score_directory):
             if not scores_dir_data[1]:#no subdirectories
@@ -69,12 +68,8 @@ class cross_validator:
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0],qrel_path)
-                print (final_score_dir[0])
-                print (os.path.dirname(final_score_dir[0]))
                 fold = os.path.basename(final_score_dir[0])
-                print ("f,",fold)
                 self.chosen_models[fold] = evaluation.chosen_model
-                print('e',evaluation.chosen_model)
 
     def k_fold_cross_validation(self,model):
         dirs = os.walk(self.folds_creator.working_path)
@@ -142,7 +137,6 @@ class cross_validator:
             if not scores_dir_data[1]:  # no subdirectories
                 for scores_file_name in scores_dir_data[2]:
                     scores_file = scores_dir_data[0] + "/" + scores_file_name
-                    print("scores file =",scores_file)
                     evaluation.create_file_in_trec_eval_format(scores_file, scores_in_trec_format_path, '')
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:

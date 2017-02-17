@@ -21,7 +21,6 @@ class evaluator:
             for data_record in test_data:
                 query_id = data_record.split(" ")[1].split(":")[1]
                 document_name = data_record.split("#")[1].rstrip()
-                print (document_name)
                 if not self.query_doc_index.get(row_number,False):
                     self.query_doc_index[row_number]={}
                     self.query_doc_index[row_number][query_id]=document_name
