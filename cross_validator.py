@@ -43,7 +43,7 @@ class cross_validator:
         score_file_prefix_with_extension=os.path.basename(model_file)
         score_file_prefix = os.path.splitext(score_file_prefix_with_extension)[0]
         run_command = 'java -jar ./RankLib-2.5.jar -load ' + model_file + \
-                  ' -rank '+test_file+' -score '+score_directory+'/'+score_file_prefix+'_score.txt'
+                  ' -rank '+test_file+' -score '+score_directory+'/'+score_file_prefix+'.txt'
         for output_line in self.run_command(run_command):
             print(output_line)
 
@@ -60,6 +60,7 @@ class cross_validator:
             if not models_dir[1]:
                 for model in models_dir[2]:
                     model_file = models_dir[0]+"/"+model
+                    print("model file",model_file)
                     self.run_model_lmbda_mart(model_file,validation_file,score_directory)
         for scores_dir_data in os.walk(score_directory):
             if not scores_dir_data[1]:#no subdirectories
@@ -82,7 +83,6 @@ class cross_validator:
         for dir in dirs:
             if not dir[1]:#no subdirectories
                 dir_name = os.path.basename(dir[0])
-
                 models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name +"_models"
                 if not os.path.exists(models_path):
                     os.makedirs(models_path)
@@ -92,13 +92,13 @@ class cross_validator:
                     os.makedirs(scores_path)
                 if not os.path.exists(scores_in_trec_format_path):
                     os.makedirs(scores_in_trec_format_path)
-                scores_path_final = result_dir+"/"+self.data_set+"/test_scores/"+dir_name
+                test_scores_path = result_dir+"/"+self.data_set+"/test_scores/"+dir_name
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
-                    if not os.path.exists(scores_path_final):
-                        os.makedirs(scores_path_final)
-                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",scores_path_final)
+                    if not os.path.exists(test_scores_path):
+                        os.makedirs(test_scores_path)
+                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path)
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
@@ -138,7 +138,8 @@ class cross_validator:
             if not scores_dir_data[1]:  # no subdirectories
                 for scores_file_name in scores_dir_data[2]:
                     scores_file = scores_dir_data[0] + "/" + scores_file_name
-                    evaluation.create_file_in_trec_eval_format(scores_file, scores_in_trec_format_path, 'RANKLIB')
+                    print("scores file =",scores_file)
+                    evaluation.create_file_in_trec_eval_format(scores_file, scores_in_trec_format_path, '')
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0], qrel_path)
