@@ -81,8 +81,8 @@ class cross_validator:
                 models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name +"_models"
                 if not os.path.exists(models_path):
                     os.makedirs(models_path)
-                scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+dir_name + "_scores"
-                scores_in_trec_format_path = result_dir+"/"+self.data_set+"/final_format_scores"+"/"+dir_name
+                scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+model+"/"+dir_name
+                scores_in_trec_format_path = result_dir+"/"+self.data_set+"/final_format_scores"+"/"+model+"/"+dir_name
                 if not os.path.exists(scores_path):
                     os.makedirs(scores_path)
                 if not os.path.exists(scores_in_trec_format_path):
