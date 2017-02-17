@@ -47,7 +47,7 @@ class evaluator:
 
                 trec_eval_formatted_file_before_sort_file.write(query_id+"\tQ0\t"+document_name+"\t"+str(row_number)+"\t"+str(score)+"\tindri\n")
                 row_number += 1
-                trec_eval_formatted_file_before_sort_file.close()
+            trec_eval_formatted_file_before_sort_file.close()
             command = "sort -k1,1 -k5 < "+trec_eval_formatted_file_before_sort+" > "+trec_eval_formatted_file_final
             for output_line in self.run_command(command):
                 print(output_line)
