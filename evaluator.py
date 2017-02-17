@@ -90,8 +90,8 @@ class evaluator:
                 score = output_line.split()[-1]
                 score_data.append((model_name,metric,score))
 
-        summary_file = open(final_scores_directory+"/summart_of_test_run.txt",'w')
-        summary_file.write("MODEL\tMETRIC\tSCORE")
+        summary_file = open(final_scores_directory+"/summary_of_test_run.txt",'w')
+        summary_file.write("MODEL\tMETRIC\tSCORE\n")
         for score_record in score_data:
-            summary_file.write(score_record[0]+"\t"+score_record[1]+"\t"+score_record[2])
+            summary_file.write(score_record[0]+"\t"+score_record[1]+"\t"+score_record[2]+"\n")
         summary_file.close()
