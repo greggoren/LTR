@@ -36,16 +36,20 @@ class cross_validator:
 
         for output_line in self.run_command(command):
             output_line+=""
-            #print(output_line)
+
 
 
     def run_model_lmbda_mart(self,model_file,test_file,score_directory):
         score_file_prefix_with_extension=os.path.basename(model_file)
         score_file_prefix = os.path.splitext(score_file_prefix_with_extension)[0]
+        score_file = score_directory + '/' + score_file_prefix + '.txt'
         run_command = 'java -jar ./RankLib-2.5.jar -load ' + model_file + \
-                  ' -rank '+test_file+' -score '+score_directory+'/'+score_file_prefix+'.txt'
+                  ' -rank '+test_file+' -score '+score_file
         for output_line in self.run_command(run_command):
             print(output_line)
+
+        return score_file
+
 
     def run_lmbda_mart_models_on_validation_set_and_pick_the_best(self, models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)
@@ -78,7 +82,7 @@ class cross_validator:
         for dir in dirs:
             if not dir[1]:#no subdirectories
                 dir_name = os.path.basename(dir[0])
-                models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name +"_models"
+                models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name
                 if not os.path.exists(models_path):
                     os.makedirs(models_path)
                 scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+model+"/"+dir_name
@@ -88,12 +92,15 @@ class cross_validator:
                 if not os.path.exists(scores_in_trec_format_path):
                     os.makedirs(scores_in_trec_format_path)
                 test_scores_path = result_dir+"/"+self.data_set+"/test_scores/"+dir_name
+                final_test_scores_in_trec_format = result_dir+"/"+self.data_set+"/test_scores_trec_format/"+dir_name
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
                     if not os.path.exists(test_scores_path):
                         os.makedirs(test_scores_path)
-                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path)
+                    if not os.path.exists(final_test_scores_in_trec_format):
+                        os.makedirs(final_test_scores_in_trec_format)
+                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,"./qrels.txt")
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
@@ -113,12 +120,14 @@ class cross_validator:
 
 
 
-    def run_chosen_model_on_test_lambda_mart(self,fold,models_path,test_file,score_dir):
+    def run_chosen_model_on_test_lambda_mart(self,fold,models_path,test_file,score_dir,final_score_directory,qrel_path):
         key =fold
-        print ("key",key)
         model_file_name = models_path+"/"+self.chosen_models[key]
-        self.run_model_lmbda_mart(model_file_name,test_file,score_dir)
-
+        score_file = self.run_model_lmbda_mart(model_file_name,test_file,score_dir)
+        evaluation = evaluator.evaluator()
+        evaluation.prepare_index_of_test_file(test_file)
+        final_score_trec_file = evaluation.create_file_in_trec_eval_format(score_file,final_score_directory,'RANKLIB')
+        evaluation.run_trec_eval_on_test_file(qrel_path,final_score_trec_file)
 
     def run_svm_on_validation_set_and_pick_the_best(self,models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)

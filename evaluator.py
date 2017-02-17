@@ -29,7 +29,9 @@ class evaluator:
 
     def create_file_in_trec_eval_format(self,scores_file,final_scores_directory,package):
         scores_file_name = os.path.basename(scores_file)
-        trec_eval_formatted_file = open(final_scores_directory+"/"+scores_file_name,'w')
+        scores_file_name_temp = os.path.basename(scores_file).replace(".txt",".tmp")
+        trec_eval_formatted_file_before_sort = open(final_scores_directory+"/"+scores_file_name_temp,'w')
+        trec_eval_formatted_file_final =  final_scores_directory+"/"+scores_file_name
         with open(scores_file) as scores_data:
             row_number = 0
             for score_record in scores_data:
@@ -42,9 +44,15 @@ class evaluator:
                 query_id = self.query_doc_index[row_number].keys()[0]
                 document_name = self.query_doc_index[row_number][query_id]
 
-                trec_eval_formatted_file.write(query_id+"\tQ0\t"+document_name+"\t"+str(row_number)+"\t"+str(score)+"\tindri\n")
+                trec_eval_formatted_file_before_sort.write(query_id+"\tQ0\t"+document_name+"\t"+str(row_number)+"\t"+str(score)+"\tindri\n")
                 row_number += 1
-            trec_eval_formatted_file.close()
+            trec_eval_formatted_file_before_sort.close()
+            command = "sort -k1,1 -k5 < "+str(trec_eval_formatted_file_before_sort)+" > "+str(trec_eval_formatted_file_final)
+            for output_line in self.run_command(command):
+                print(output_line)
+            os.remove(str(trec_eval_formatted_file_before_sort))
+        return trec_eval_formatted_file_final
+
 
     def run_trec_eval_on_evaluation_set(self,final_scores_directory,qrel_path):
         scores = []
@@ -72,4 +80,18 @@ class evaluator:
             summary_file.write(score[0]+"\t"+score[1]+"\n")
         summary_file.close()
 
+    def run_trec_eval_on_test_file(self,qrel_path,score_file):
+        score_data = []
+        final_scores_directory = os.path.dirname(score_file)
+        model_name = os.path.basename(score_file)
+        for metric in self.metrics:
+            command = "./trec_eval -m "+metric+ " "+qrel_path+" "+score_file
+            for output_line in self.run_command(command):
+                score = output_line.split()[-1]
+                score_data.append((model_name,metric,score))
 
+        summary_file = open(final_scores_directory+"/summart_of_test_run.txt",'w')
+        summary_file.write("MODEL\tMETRIC\tSCORE")
+        for score_record in score_data:
+            summary_file.write(score_record[0]+"\t"+score_record[1]+"\t"+score_record[2])
+        summary_file.close()
