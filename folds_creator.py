@@ -51,7 +51,7 @@ class folds_creator:
         parent_path = os.path.abspath(os.path.join(path, os.pardir))
         if not os.path.exists(parent_path + "/working_sets"):
             os.makedirs(parent_path + "/working_sets")
-        self.working_path = working_path = parent_path+"/working_sets"+time.time()+"/"
+        self.working_path = working_path = parent_path+"/working_sets"+str(time.time())+"/"
 
         for fold in range(2,self.k+1):
             self.create_files_in_working_folder(fold,fold-1,working_path)
