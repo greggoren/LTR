@@ -1,6 +1,6 @@
 import math
 import os
-
+import time
 class folds_creator:
     def __init__(self,k,train_file, number_of_queries=-1,fold_prefix="fold"):
         self.k = k
@@ -51,7 +51,7 @@ class folds_creator:
         parent_path = os.path.abspath(os.path.join(path, os.pardir))
         if not os.path.exists(parent_path + "/working_sets"):
             os.makedirs(parent_path + "/working_sets")
-        self.working_path = working_path = parent_path+"/working_sets/"
+        self.working_path = working_path = parent_path+"/working_sets"+time.time()+"/"
 
         for fold in range(2,self.k+1):
             self.create_files_in_working_folder(fold,fold-1,working_path)
