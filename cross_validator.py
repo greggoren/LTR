@@ -27,10 +27,10 @@ class cross_validator:
                              shell=True)
         return iter(p.stdout.readline, b'')
 
-    def create_model_lmbda_mart(self, number_of_trees, number_of_leaves, train_file,model_directory):
+    def create_model_lmbda_mart(self, number_of_trees, number_of_leaves, train_file,model_directory,query_relevance_file):
 
         command = 'java -jar ./RankLib-2.5.jar -train '+train_file+ \
-                  ' -ranker 6 -qrel qrels.txt -metric2t NDCG@20'\
+                  ' -ranker 6 -qrel '+query_relevance_file+' -metric2t NDCG@20'\
                   ' -tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves) +\
                   ' -save '+model_directory+'/model_'+str(number_of_trees)+"_"+str(number_of_leaves)+'.txt'
 
@@ -71,7 +71,7 @@ class cross_validator:
                 fold = os.path.basename(final_score_dir[0])
                 self.chosen_models[fold] = evaluation.chosen_model
 
-    def k_fold_cross_validation(self,model):
+    def k_fold_cross_validation(self,model,query_relevance_file):
         dirs = os.walk(self.folds_creator.working_path)
         result_dir = os.path.abspath(os.path.join(self.folds_creator.working_path,os.pardir))
         for dir in dirs:
@@ -93,18 +93,18 @@ class cross_validator:
                 if not os.path.exists(final_test_scores_in_trec_format):
                     os.makedirs(final_test_scores_in_trec_format)
                 if model == "LAMBDAMART":
-                    self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path)
-                    self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
-                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,"./qrels.txt")
+                    self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path,query_relevance_file)
+                    self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,query_relevance_file)
+                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file)
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
-                    self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,"./qrels.txt")
-                    self.run_svm_on_test_set(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,"./qrels.txt ")
+                    self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,query_relevance_file)
+                    self.run_svm_on_test_set(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file)
 
-    def lambda_mart_models_creator(self, train_file,models_directory):
+    def lambda_mart_models_creator(self, train_file,models_directory,query_relevance_file):
         for number_of_trees in self.number_of_trees_for_test:
             for number_of_leaves in self.number_of_leaves_for_test:
-                self.create_model_lmbda_mart(number_of_trees, number_of_leaves, train_file,models_directory)
+                self.create_model_lmbda_mart(number_of_trees, number_of_leaves, train_file,models_directory,query_relevance_file)
 
 
     def svm_models_creator(self,train_file,models_directory):
