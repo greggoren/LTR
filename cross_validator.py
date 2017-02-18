@@ -109,7 +109,7 @@ class cross_validator:
 
     def svm_models_creator(self,train_file,models_directory):
         for c_value in self.svm_c_params_to_test:
-            learning_command = "svm_rank_learn -c " + str(c_value) + " "+train_file+" "+models_directory+"/svm_model"+str(c_value)+".txt"
+            learning_command = "./svm_rank_learn -c " + str(c_value) + " "+train_file+" "+models_directory+"/svm_model"+str(c_value)+".txt"
             for output_line in self.run_command(learning_command):
                 print(output_line)
 
@@ -148,7 +148,7 @@ class cross_validator:
     def run_model_svm(self,model_file, test_file, score_directory):
         model_name = os.path.basename(model_file)
         score_file = score_directory+"/"+model_name
-        test_command = "svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
+        test_command = "./svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
         for output_line in self.run_command(test_command):
             print(output_line)
         return score_file
