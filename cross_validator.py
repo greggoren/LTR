@@ -12,7 +12,6 @@ class cross_validator:
         self.k =k
         self.number_of_trees_for_test = [500, 250]
         self.number_of_leaves_for_test = [5, 10]
-        self.test_metric = ["NDCG@20", "P@10", "P@5", "MAP"]
         self.svm_c_params_to_test = [0.1, 0.01, 0.001]
         self.data_set = data_set
         self.chosen_models = {}

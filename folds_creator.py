@@ -48,8 +48,7 @@ class folds_creator:
                     feature_value = train_record_splitted[index].split(":")[1]
                     new_value = self.change_to_normalized_value(feature_index, feature, feature_value)
                     new_record += str(feature) + ":" + str(new_value) + " "
-                new_record += train_record_splitted[132] + "\n"
-                print new_record
+                new_record += train_record_splitted[132]+" "+train_record_splitted[133]+ "\n"
                 new_feature_file.write(new_record)
             new_feature_file.close()
             self.train_file = train_file_folder + "/normalized_features"
