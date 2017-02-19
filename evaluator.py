@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 class evaluator:
     def __init__(self):
         self.query_doc_index={}
@@ -63,7 +64,9 @@ class evaluator:
                     final_score_file = score_dir[0]+"/"+score_file
                     command="./trec_eval -m "+self.evaluation_metric+ " "+qrel_path+" "+final_score_file
                     for output_line in self.run_command(command):
-                        evaluation_score = output_line.split()[-1].rstrip()
+                        evaluation_score = output_line.split()[-1]
+                        print(evaluation_score)
+                        sys.stdout.flush()
                         scores.append((final_score_file,evaluation_score))
                         if max_score == 0.0:
                             max_score = evaluation_score
