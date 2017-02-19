@@ -56,7 +56,7 @@ class evaluator:
 
     def run_trec_eval_on_evaluation_set(self,final_scores_directory,qrel_path):
         scores = []
-        max_score =""
+        max_score =0
         for score_dir in os.walk(final_scores_directory):
             if not score_dir[1]:
                 for score_file in score_dir[2]:
@@ -70,8 +70,8 @@ class evaluator:
                             self.chosen_model = os.path.basename(final_score_file)
 
                         else:
-                            if evaluation_score>max_score:
-                                max_score= evaluation_score
+                            if float(evaluation_score)>max_score:
+                                max_score= float(evaluation_score)
                                 self.chosen_model = os.path.basename(final_score_file)
 
 
