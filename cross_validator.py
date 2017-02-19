@@ -1,4 +1,4 @@
-from copy import deepcopy
+import sys
 import folds_creator as fc
 import os
 import subprocess
@@ -146,9 +146,7 @@ class cross_validator:
 
     def run_model_svm(self,model_file, test_file, score_directory):
         model_name = os.path.basename(model_file)
-
         score_file = score_directory+"/"+model_name
-        print("score=",score_file)
         test_command = "./svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
         for output_line in self.run_command(test_command):
             print(output_line)
@@ -156,6 +154,8 @@ class cross_validator:
 
     def run_svm_on_test_set(self,fold,models_path,test_file,score_dir,final_score_directory,qrel_path):
         key = fold
+        print(self.chosen_models.keys())
+        sys.stdout.flush()
         model_file_name = models_path + "/" + self.chosen_models[key]
         score_file = self.run_model_svm(model_file_name, test_file, score_dir)
         evaluation = evaluator.evaluator()
