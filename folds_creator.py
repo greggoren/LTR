@@ -1,6 +1,8 @@
 import math
 import os
 import time
+import subprocess
+
 class folds_creator:
     def __init__(self,k,train_file, number_of_queries=-1,fold_prefix="fold"):
         self.k = k
@@ -120,29 +122,50 @@ class folds_creator:
                 print(fold)
                 train_set.extend(self.folds[fold])
 
-        train_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "train.txt")
+        train_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "train.tmp")
         train_for_ltr = open(train_path, 'w')
         for train_data in train_set:
             train_for_ltr.write("%s" % train_data)
         train_for_ltr.close()
+        command = "sort -k2,1 < "+path+"fold"+str(test_fold)+"/"+ "train.tmp > "+path+"fold"+str(test_fold)+"/"+ "train.txt"
+
+        for output_line in self.run_command(command):
+            print output_line
+        os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
         print("finished train.txt")
-        validation_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "validation.txt")
+        validation_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "validation.tmp")
         validation_file = open(validation_path,'w')
         validation_set = self.folds[self.fold_prefix+str(validation_fold)]
         for validation_data in validation_set:
             validation_file.write("%s" % validation_data)
         validation_file.close()
+        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(
+            test_fold) + "/" + "validation.txt"
+        for output_line in self.run_command(command):
+            print output_line
+        os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
         print("finished validation.txt")
+
         test_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "test.txt")
         test_file = open(test_path,'w')
         test_set = self.folds[self.fold_prefix+str(test_fold)]
         for test_data in test_set:
             test_file.write(test_data)
         test_file.close()
+        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(
+            test_fold) + "/" + "test.txt"
+        for output_line in self.run_command(command):
+            print output_line
+        os.remove(path + "fold" + str(test_fold) + "/" + "test.tmp")
         print("finished test.txt")
 
 
-
+    def run_command(self):
+        p = subprocess.Popen(command,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             shell=True)
+        return iter(p.stdout.readline, b'')
 
     def split_train_file_into_folds(self):
         number_of_queries_in_file = math.floor(float(float(self.number_of_queries)/self.k))
