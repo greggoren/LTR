@@ -65,7 +65,7 @@ class evaluator:
                     command="./trec_eval -m "+self.evaluation_metric+ " "+qrel_path+" "+final_score_file
                     for output_line in self.run_command(command):
                         evaluation_score = output_line.split()[-1]
-                        print(evaluation_score)
+                        print repr(evaluation_score)
 
                         scores.append((final_score_file,evaluation_score))
                         if max_score == 0.0:
