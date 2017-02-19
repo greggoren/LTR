@@ -127,7 +127,7 @@ class folds_creator:
         for train_data in train_set:
             train_for_ltr.write("%s" % train_data)
         train_for_ltr.close()
-        command = "sort -k2,1 < "+path+"fold"+str(test_fold)+"/"+ "train.tmp > "+path+"fold"+str(test_fold)+"/"+ "train.txt"
+        command = "sort -r -k2,1 < "+path+"fold"+str(test_fold)+"/"+ "train.tmp > "+path+"fold"+str(test_fold)+"/"+ "train.txt"
         for output_line in self.run_command(command):
             print output_line
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "train.tmp"):
@@ -140,7 +140,7 @@ class folds_creator:
         for validation_data in validation_set:
             validation_file.write("%s" % validation_data)
         validation_file.close()
-        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(test_fold) + "/" + "validation.txt"
+        command = "sort -r -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(test_fold) + "/" + "validation.txt"
         for output_line in self.run_command(command):
             print output_line
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "validation.tmp"):
@@ -153,7 +153,7 @@ class folds_creator:
         for test_data in test_set:
             test_file.write(test_data)
         test_file.close()
-        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(test_fold) + "/" + "test.txt"
+        command = "sort -r -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(test_fold) + "/" + "test.txt"
         for output_line in self.run_command(command):
             print output_line
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "test.tmp"):
