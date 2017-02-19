@@ -140,7 +140,7 @@ class cross_validator:
         for final_score_dir in os.walk(scores_in_trec_format_path):
             if not final_score_dir[1]:
                 evaluation.run_trec_eval_on_evaluation_set(final_score_dir[0], qrel_path)
-                fold = os.path.basename(os.path.dirname(final_score_dir[0]))
+                fold = os.path.basename(final_score_dir[0])
                 self.chosen_models[fold] = evaluation.chosen_model
 
 
