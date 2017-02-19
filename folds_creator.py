@@ -131,7 +131,7 @@ class folds_creator:
 
         for output_line in self.run_command(command):
             print output_line
-        os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
+        os.remove(path + "fold" + str(test_fold) + "/" + "train.tmp")
         print("finished train.txt")
         validation_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "validation.tmp")
         validation_file = open(validation_path,'w')
