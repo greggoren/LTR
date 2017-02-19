@@ -63,14 +63,14 @@ class evaluator:
                     final_score_file = score_dir[0]+"/"+score_file
                     command="./trec_eval -m "+self.evaluation_metric+ " "+qrel_path+" "+final_score_file
                     for output_line in self.run_command(command):
-                        evaluation_score = output_line.split()[-1]
+                        evaluation_score = output_line.split()[-1].rstrip()
                         scores.append((final_score_file,evaluation_score))
                         if max_score == 0.0:
                             max_score = evaluation_score
                             self.chosen_model = os.path.basename(final_score_file)
 
                         else:
-                            if float(evaluation_score)>max_score:
+                            if float(evaluation_score) > max_score:
                                 max_score= float(evaluation_score)
                                 self.chosen_model = os.path.basename(final_score_file)
 
