@@ -66,7 +66,7 @@ class evaluator:
                     for output_line in self.run_command(command):
                         evaluation_score = output_line.split()[-1]
                         print(evaluation_score)
-                        sys.stdout.flush()
+
                         scores.append((final_score_file,evaluation_score))
                         if max_score == 0.0:
                             max_score = evaluation_score
@@ -76,7 +76,8 @@ class evaluator:
                             if float(evaluation_score) > max_score:
                                 max_score= float(evaluation_score)
                                 self.chosen_model = os.path.basename(final_score_file)
-
+                                print("model",self.chosen_model)
+                                sys.stdout.flush()
 
         summary_file = open(final_scores_directory+"/summary_of_evaluation.txt",'w')
         for score in scores:
