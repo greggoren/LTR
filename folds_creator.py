@@ -139,21 +139,19 @@ class folds_creator:
         for validation_data in validation_set:
             validation_file.write("%s" % validation_data)
         validation_file.close()
-        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(
-            test_fold) + "/" + "validation.txt"
+        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(test_fold) + "/" + "validation.txt"
         for output_line in self.run_command(command):
             print output_line
         os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
         print("finished validation.txt")
 
-        test_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "test.txt")
+        test_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "test.tmp")
         test_file = open(test_path,'w')
         test_set = self.folds[self.fold_prefix+str(test_fold)]
         for test_data in test_set:
             test_file.write(test_data)
         test_file.close()
-        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(
-            test_fold) + "/" + "test.txt"
+        command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(test_fold) + "/" + "test.txt"
         for output_line in self.run_command(command):
             print output_line
         os.remove(path + "fold" + str(test_fold) + "/" + "test.tmp")
