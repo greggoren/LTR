@@ -10,8 +10,62 @@ class folds_creator:
         self.folds = {}
         self.working_path = ""
 
+    def normalize_training_file(self):#TODO: make function more generic - to fit each data set
+        feature_index = {}
+
+
+        print(self.train_file)
+
+
+        with open(self.train_file) as train_data:
+            for train_record in train_data:
+                splited_record = train_record.split()
+                for index in range(2,132):
+                    feature = splited_record[index].split(":")[0]
+                    feature_value = splited_record[index].split(":")[1]
+                    if not feature_index.get(feature,False):
+                        feature_index[feature]={}
+                        feature_index[feature]["min"] = feature_value
+                        feature_index[feature]["max"] = feature_value
+                    else:
+                        if float(feature_value) > float(feature_index[feature]["max"]):
+                            feature_index[feature]["max"]  = feature_value
+                        elif float(feature_value) < float(feature_index[feature]["min"]):
+                            feature_index[feature]["min"] = feature_value
+            self.get(feature_index)
+
+    def get(self,feature_index):
+        train_file_folder = os.path.dirname(os.path.dirname(__file__))
+        new_feature_file = open(train_file_folder + "/normalized_features", 'w')
+        with open(self.train_file) as train_data:
+            for train_record in train_data:
+
+                new_record = ""
+                train_record_splitted = train_record.split()
+                new_record += train_record_splitted[0] + " " + train_record_splitted[1] + " "
+                for index in range(2, 132):
+                    feature = train_record_splitted[index].split(":")[0]
+                    feature_value = train_record_splitted[index].split(":")[1]
+                    new_value = self.change_to_normalized_value(feature_index, feature, feature_value)
+                    new_record += str(feature) + ":" + str(new_value) + " "
+                new_record += train_record_splitted[132] + "\n"
+                print new_record
+                new_feature_file.write(new_record)
+            new_feature_file.close()
+            self.train_file = train_file_folder + "/normalized_features"
+
+
+    def change_to_normalized_value(self,feature_index,feature, old_feature_value):
+        new_feature_value = 0.0
+        if feature_index[feature]['min'] != feature_index[feature]['max']:
+            new_feature_value = ((float(old_feature_value) - float(feature_index[feature]['min']))/(float(feature_index[feature]['max']) - float(feature_index[feature]['min'])))
+        return new_feature_value
+
+
+
 
     def init_files(self, number_of_queries_in_fold):
+
         query_to_fold = {}
         fold_number = 1
         current_number_of_queries = 0
@@ -28,10 +82,7 @@ class folds_creator:
 
 
     def go_over_train_file_and_split_to_folds(self, query_to_fold):
-
-        path = os.path.dirname(__file__)+"/"
-        print(path)
-        absolute_path = os.path.abspath(path+self.train_file)
+        absolute_path = os.path.abspath(self.train_file)
         folds = {}
         with open(absolute_path) as train_set:
             for doc in train_set:
@@ -49,13 +100,13 @@ class folds_creator:
         print("starting working set creation")
         path = os.path.dirname(__file__)
         parent_path = os.path.abspath(os.path.join(path, os.pardir))
-        if not os.path.exists(parent_path + "/working_sets"):
-            os.makedirs(parent_path + "/working_sets")
-        self.working_path = working_path = parent_path+"/working_sets"+str(time.time())+"/"
+        #if not os.path.exists(parent_path + "/working_sets"):
+         #   os.makedirs(parent_path + "/working_sets")
+        self.working_path = parent_path+"/working_sets"+str(time.time())+"/"
 
         for fold in range(2,self.k+1):
-            self.create_files_in_working_folder(fold,fold-1,working_path)
-        self.create_files_in_working_folder(1,self.k,working_path)
+            self.create_files_in_working_folder(fold,fold-1,self.working_path)
+        self.create_files_in_working_folder(1,self.k,self.working_path)
         print("working set creation is done")
 
 
@@ -97,5 +148,6 @@ class folds_creator:
     def split_train_file_into_folds(self):
         number_of_queries_in_file = math.floor(float(float(self.number_of_queries)/self.k))
         query_to_fold = self.init_files(number_of_queries_in_file)
+        self.normalize_training_file()
         self.folds = self.go_over_train_file_and_split_to_folds(query_to_fold)
         self.create_folds_splited_into_folders()
