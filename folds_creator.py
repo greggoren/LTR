@@ -160,7 +160,7 @@ class folds_creator:
         print("finished test.txt")
 
 
-    def run_command(self):
+    def run_command(self,command):
         p = subprocess.Popen(command,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
