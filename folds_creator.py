@@ -128,11 +128,12 @@ class folds_creator:
             train_for_ltr.write("%s" % train_data)
         train_for_ltr.close()
         command = "sort -k2,1 < "+path+"fold"+str(test_fold)+"/"+ "train.tmp > "+path+"fold"+str(test_fold)+"/"+ "train.txt"
-
         for output_line in self.run_command(command):
             print output_line
-        os.remove(path + "fold" + str(test_fold) + "/" + "train.tmp")
+        if os.path.exists(path + "fold" + str(test_fold) + "/" + "train.tmp"):
+            os.remove(path + "fold" + str(test_fold) + "/" + "train.tmp")
         print("finished train.txt")
+
         validation_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "validation.tmp")
         validation_file = open(validation_path,'w')
         validation_set = self.folds[self.fold_prefix+str(validation_fold)]
@@ -142,7 +143,8 @@ class folds_creator:
         command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(test_fold) + "/" + "validation.txt"
         for output_line in self.run_command(command):
             print output_line
-        os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
+        if os.path.exists(path + "fold" + str(test_fold) + "/" + "validation.tmp"):
+            os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
         print("finished validation.txt")
 
         test_path = os.path.abspath(path+"fold"+str(test_fold)+"/"+ "test.tmp")
@@ -154,7 +156,8 @@ class folds_creator:
         command = "sort -k2,1 < " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(test_fold) + "/" + "test.txt"
         for output_line in self.run_command(command):
             print output_line
-        os.remove(path + "fold" + str(test_fold) + "/" + "test.tmp")
+        if os.path.exists(path + "fold" + str(test_fold) + "/" + "test.tmp"):
+            os.remove(path + "fold" + str(test_fold) + "/" + "test.tmp")
         print("finished test.txt")
 
 
