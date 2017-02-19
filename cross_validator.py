@@ -146,7 +146,9 @@ class cross_validator:
 
     def run_model_svm(self,model_file, test_file, score_directory):
         model_name = os.path.basename(model_file)
+
         score_file = score_directory+"/"+model_name
+        print("score=",score_file)
         test_command = "./svm_rank_classify "+test_file+" "+model_file +" "+score_directory+"/"+model_name
         for output_line in self.run_command(test_command):
             print(output_line)
