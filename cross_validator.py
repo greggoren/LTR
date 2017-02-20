@@ -71,8 +71,11 @@ class cross_validator:
                 self.chosen_models[fold] = evaluation.chosen_model
 
     def k_fold_cross_validation(self,model,query_relevance_file):
+        test_score_files = []
+
         dirs = os.walk(self.folds_creator.working_path)
         result_dir = os.path.abspath(os.path.join(self.folds_creator.working_path,os.pardir))
+        final_result_file_combined = result_dir + "/" + self.data_set + "/test_scores_trec_format/" + model+"/final_score_combined.tmp"
         for dir in dirs:
             if not dir[1]:#no subdirectories
                 dir_name = os.path.basename(dir[0])
@@ -94,11 +97,28 @@ class cross_validator:
                 if model == "LAMBDAMART":
                     self.lambda_mart_models_creator(dir[0] + "/train.txt",models_path,query_relevance_file)
                     self.run_lmbda_mart_models_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,query_relevance_file)
-                    self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file)
+                    test_score_files.append(self.run_chosen_model_on_test_lambda_mart(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file))
                 elif model == "SVM":
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,query_relevance_file)
-                    self.run_svm_on_test_set(dir_name,models_path,dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file)
+                    test_score_files.append(self.run_svm_on_test_set(dir_name,models_path, dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file))
+        with open(final_result_file_combined) as final_file:
+            for trec_file in test_score_files:
+                with open(trec_file) as infile:
+                    for record in infile:
+                        final_file.write(record)
+        self.sort_and_evaluate_final_file(final_result_file_combined,query_relevance_file)
+
+
+
+    def sort_and_evaluate_final_file(self,final_file_name,qrel_path):
+        final_file_as_txt = final_file_name.replace("tmp","txt")
+        command = "sort -k1,1 -k5 "+final_file_name+" > "+final_file_as_txt
+        for output_line in self.run_command(command):
+            print(output_line)
+        evaluation = evaluator.evaluator()
+        evaluation.run_trec_eval_on_test_file(qrel_path,final_file_as_txt)
+
 
     def lambda_mart_models_creator(self, train_file,models_directory,query_relevance_file):
         for number_of_trees in self.number_of_trees_for_test:
@@ -121,7 +141,8 @@ class cross_validator:
         evaluation = evaluator.evaluator()
         evaluation.prepare_index_of_test_file(test_file)
         final_score_trec_file = evaluation.create_file_in_trec_eval_format(score_file,final_score_directory,'RANKLIB')
-        evaluation.run_trec_eval_on_test_file(qrel_path,final_score_trec_file)
+        return final_score_trec_file
+        #evaluation.run_trec_eval_on_test_file(qrel_path,final_score_trec_file)
 
     def run_svm_on_validation_set_and_pick_the_best(self,models_dir, validation_file, score_directory, scores_in_trec_format_path,qrel_path):
         models_dirs = os.walk(models_dir)
@@ -161,7 +182,8 @@ class cross_validator:
         evaluation = evaluator.evaluator()
         evaluation.prepare_index_of_test_file(test_file)
         final_score_trec_file = evaluation.create_file_in_trec_eval_format(score_file, final_score_directory, '')
-        evaluation.run_trec_eval_on_test_file(qrel_path, final_score_trec_file)
+        return final_score_trec_file
+        #evaluation.run_trec_eval_on_test_file(qrel_path, final_score_trec_file)
 
 
 
