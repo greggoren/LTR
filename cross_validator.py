@@ -102,7 +102,7 @@ class cross_validator:
                     self.svm_models_creator(dir[0] + "/train.txt",models_path)
                     self.run_svm_on_validation_set_and_pick_the_best(models_path, dir[0] + "/validation.txt", scores_path, scores_in_trec_format_path,query_relevance_file)
                     test_score_files.append(self.run_svm_on_test_set(dir_name,models_path, dir[0]+"/test.txt",test_scores_path,final_test_scores_in_trec_format,query_relevance_file))
-        with open(final_result_file_combined) as final_file:
+        with open(final_result_file_combined,'w') as final_file:
             for trec_file in test_score_files:
                 with open(trec_file) as infile:
                     for record in infile:
