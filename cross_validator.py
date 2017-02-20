@@ -28,10 +28,10 @@ class cross_validator:
 
     def create_model_lmbda_mart(self, number_of_trees, number_of_leaves, train_file,model_directory,query_relevance_file):
 
-        command = 'java -jar ./RankLib-2.5.jar -train '+train_file+ \
+        command = '../jdk1.8.0_121/bin/java -jar ./RankLib.jar -train '+train_file+ \
                   ' -ranker 6 -qrel '+query_relevance_file+' -metric2t NDCG@20'\
                   ' -tree '+str(number_of_trees) +' -leaf '+str(number_of_leaves) +\
-                  ' -save '+model_directory+'/model_'+str(number_of_trees)+"_"+str(number_of_leaves)+'.txt'
+                  ' -save '+model_directory+'/model_'+str(number_of_trees)+"_"+str(number_of_leaves)+'.txt' #path to java 1.8
 
         for output_line in self.run_command(command):
             output_line+=""
@@ -42,8 +42,8 @@ class cross_validator:
         score_file_prefix_with_extension=os.path.basename(model_file)
         score_file_prefix = os.path.splitext(score_file_prefix_with_extension)[0]
         score_file = score_directory + '/' + score_file_prefix + '.txt'
-        run_command = 'java -jar ./RankLib-2.5.jar -load ' + model_file + \
-                  ' -rank '+test_file+' -score '+score_file
+        run_command = '../jdk1.8.0_121/bin/java -jar ./RankLib.jar -load ' + model_file + \
+                  ' -rank '+test_file+' -score '+score_file #path to java 1.8
         for output_line in self.run_command(run_command):
             print(output_line)
 
