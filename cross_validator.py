@@ -113,7 +113,7 @@ class cross_validator:
 
     def sort_and_evaluate_final_file(self,final_file_name,qrel_path):
         final_file_as_txt = final_file_name.replace("tmp","txt")
-        command = "sort -k1,1 -k5 "+final_file_name+" > "+final_file_as_txt
+        command = "sort -k1,1 -k5nr "+final_file_name+" > "+final_file_as_txt
         for output_line in self.run_command(command):
             print(output_line)
         evaluation = evaluator.evaluator()
