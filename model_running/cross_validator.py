@@ -1,12 +1,15 @@
-import sys
-import folds_creator as fc
 import os
 import subprocess
-import multiprocessing as mp
-import evaluator
+import sys
+
+from model_running import evaluator
+
+from model_running import folds_creator as fc
+
+
 class cross_validator:
-    def __init__(self,k,train_data,data_set,number_of_queries=-1,fold_prefix = "fold"):
-        self.folds_creator = fc.folds_creator(k,train_data,number_of_queries,fold_prefix)
+    def __init__(self,k,train_data,folds_creator,data_set,number_of_queries=-1,fold_prefix = "fold"):
+        self.folds_creator = folds_creator# fc.folds_creator(k,train_data,number_of_queries,fold_prefix)
         self.folds_creator.split_train_file_into_folds()
         self.fold_prefix = fold_prefix
         self.k =k

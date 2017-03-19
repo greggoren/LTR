@@ -1,6 +1,8 @@
-import sys
-import cross_validator as cv
 import os
+import sys
+
+from model_running import cross_validator as cv
+
 if __name__=="__main__":
     model = sys.argv[1]#user's input of model
     if model!="LAMBDAMART" and model!="SVM":

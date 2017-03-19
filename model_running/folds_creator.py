@@ -4,7 +4,7 @@ import time
 import subprocess
 
 class folds_creator:
-    def __init__(self,k,train_file, number_of_queries=-1,fold_prefix="fold"):
+    def __init__(self,k=5,train_file="", number_of_queries=-1,fold_prefix="fold"):
         self.k = k
         self.train_file = train_file
         self.number_of_queries = number_of_queries
@@ -13,20 +13,19 @@ class folds_creator:
         self.working_path = ""
 
     def normalize_training_file(self):#TODO: make function more generic - to fit each data set
+        amount = 2
         feature_index = {}
-
-
-        print(self.train_file)
-
-
+        length_of_features = 0
         with open(self.train_file) as train_data:
             for train_record in train_data:
                 splited_record = train_record.split()
-                for index in range(2,132):
+                if length_of_features == 0:
+                    length_of_features = len(splited_record)
+                for index in range(2,length_of_features-amount):
                     feature = splited_record[index].split(":")[0]
                     feature_value = splited_record[index].split(":")[1]
                     if not feature_index.get(feature,False):
-                        feature_index[feature]={}
+                        feature_index[feature] = {}
                         feature_index[feature]["min"] = feature_value
                         feature_index[feature]["max"] = feature_value
                     else:
@@ -34,9 +33,9 @@ class folds_creator:
                             feature_index[feature]["max"]  = feature_value
                         elif float(feature_value) < float(feature_index[feature]["min"]):
                             feature_index[feature]["min"] = feature_value
-            self.get(feature_index)
+            self.get(feature_index,length_of_features)
 
-    def get(self,feature_index):
+    def get(self,feature_index,length_of_features):
         train_file_folder = os.path.dirname(os.path.dirname(__file__))
         new_feature_file = open(train_file_folder + "/normalized_features", 'w')
         with open(self.train_file) as train_data:
@@ -45,12 +44,12 @@ class folds_creator:
                 new_record = ""
                 train_record_splitted = train_record.split()
                 new_record += train_record_splitted[0] + " " + train_record_splitted[1] + " "
-                for index in range(2, 132):
+                for index in range(2, length_of_features-2):
                     feature = train_record_splitted[index].split(":")[0]
                     feature_value = train_record_splitted[index].split(":")[1]
                     new_value = self.change_to_normalized_value(feature_index, feature, feature_value)
                     new_record += str(feature) + ":" + str(new_value) + " "
-                new_record += train_record_splitted[132]+" "+train_record_splitted[133]+ "\n"
+                new_record += train_record_splitted[length_of_features-2]+" "+train_record_splitted[length_of_features-1]+ "\n"
                 new_feature_file.write(new_record)
             new_feature_file.close()
             self.train_file = train_file_folder + "/normalized_features"
@@ -129,7 +128,7 @@ class folds_creator:
         train_for_ltr.close()
         command = "sort -k2 "+path+"fold"+str(test_fold)+"/"+ "train.tmp > "+path+"fold"+str(test_fold)+"/"+ "train.txt"
         for output_line in self.run_command(command):
-            print output_line
+            print (output_line)
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "train.tmp"):
             os.remove(path + "fold" + str(test_fold) + "/" + "train.tmp")
         print("finished train.txt")
@@ -142,7 +141,7 @@ class folds_creator:
         validation_file.close()
         command = "sort -k2 " + path + "fold" + str(test_fold) + "/" + "validation.tmp > " + path + "fold" + str(test_fold) + "/" + "validation.txt"
         for output_line in self.run_command(command):
-            print output_line
+            print (output_line)
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "validation.tmp"):
             os.remove(path + "fold" + str(test_fold) + "/" + "validation.tmp")
         print("finished validation.txt")
@@ -155,7 +154,7 @@ class folds_creator:
         test_file.close()
         command = "sort -k2  " + path + "fold" + str(test_fold) + "/" + "test.tmp > " + path + "fold" + str(test_fold) + "/" + "test.txt"
         for output_line in self.run_command(command):
-            print output_line
+            print (output_line)
         if os.path.exists(path + "fold" + str(test_fold) + "/" + "test.tmp"):
             os.remove(path + "fold" + str(test_fold) + "/" + "test.tmp")
         print("finished test.txt")
