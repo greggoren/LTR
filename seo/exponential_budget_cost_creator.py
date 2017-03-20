@@ -1,4 +1,4 @@
-from seo import generic_budget_cost_creator as gbcc
+import seo.generic_budget_cost_creator as gbcc
 import numpy as np
 
 class exponential_budget_cost_creator(gbcc.generic_budget_cost_creator):
