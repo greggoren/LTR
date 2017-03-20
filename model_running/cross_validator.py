@@ -18,7 +18,8 @@ class cross_validator:
         self.svm_c_params_to_test = [0.1, 0.01, 0.001]
         self.data_set = data_set
         self.chosen_models = {}
-
+        self.final_score_path = ""
+        self.models_path = ""
 
 
 
@@ -82,7 +83,7 @@ class cross_validator:
         for dir in dirs:
             if not dir[1]:#no subdirectories
                 dir_name = os.path.basename(dir[0])
-                models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name
+                self.models_path = models_path = result_dir+"/"+self.data_set+"/models"+"/"+model+"/"+dir_name
                 if not os.path.exists(models_path):
                     os.makedirs(models_path)
                 scores_path = result_dir+"/"+self.data_set+"/scores"+"/"+model+"/"+dir_name
@@ -92,7 +93,7 @@ class cross_validator:
                 if not os.path.exists(scores_in_trec_format_path):
                     os.makedirs(scores_in_trec_format_path)
                 test_scores_path = result_dir+"/"+self.data_set+"/test_scores/"+model+"/"+dir_name
-                final_test_scores_in_trec_format = result_dir+"/"+self.data_set+"/test_scores_trec_format/"+model+"/"+dir_name
+                self.final_score_path = final_test_scores_in_trec_format = result_dir+"/"+self.data_set+"/test_scores_trec_format/"+model+"/"+dir_name
                 if not os.path.exists(test_scores_path):
                     os.makedirs(test_scores_path)
                 if not os.path.exists(final_test_scores_in_trec_format):

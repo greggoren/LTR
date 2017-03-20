@@ -22,9 +22,7 @@ class generic_budget_cost_creator(ABC):
                                 if not document_feature_index.get(qid,False):
                                     document_feature_index[qid]={}
                                 features_length = len(feature_data)
-
                                 document_id = feature_data[features_length-1]
-
                                 document_feature_index[qid][document_id] = []
                                 for index in range(2,features_length-2):
                                     data = feature_data[index]
@@ -140,8 +138,6 @@ class generic_budget_cost_creator(ABC):
                     value_for_money = value/cost
                     if value_for_money > 0 and value > -float("inf"):
                         features_value_and_weight.append((str(index),cost,value))
-
                 cost_index[query][competitor]=features_value_and_weight
-
-        return queries_budget, competitors,cost_index
+        return queries_budget, competitors,cost_index,first_competitor_features_per_query
 

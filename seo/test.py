@@ -1,40 +1,25 @@
 from seo import exponential_budget_cost_creator as e
-from seo import knapsack_Algorithm as ka
 from seo import letor_fold_creator as lfc
 from seo import query_to_fold as qtf
-import os
-from model_running import folds_creator as fc
-if __name__=="__main__":
-    """g = e.exponential_budget_cost_creator()
-    query_per_fold_index ={}
+from model_running import cross_validator as cv
+from seo import optimized_data_set_creator as odsc
 
-    for i in range(1,6):
-        fold = "fold"+str(i)
-        query_per_fold_index[fold] = []
-        for index in range(1,41):
-            query_per_fold_index[fold].append(index)
-    chosen_models = {}
-    chosen_models['fold1'] = 'svm_model0.1.txt'
-    chosen_models['fold2'] = 'svm_model0.1.txt'
-    chosen_models['fold3'] = 'svm_model0.1.txt'
-    chosen_models['fold4'] = 'svm_model0.1.txt'
-    chosen_models['fold5'] = 'svm_model0.1.txt'
-    models_path = "C:/study/knapsack_debug"
+if __name__ == "__main__":
+    g = e.exponential_budget_cost_creator()
+    q = qtf.qtf("C:/study/letor_fixed")
+    q.create_query_to_fold_index()
+    l = lfc.letor_folds_creator("C:/study/letor_fixed","C:/study/letor_fixed",q,True)
+    o = odsc.files_rewriter()
+    c = cv.cross_validator(5,"",l,"LTOR")
+    c.k_fold_cross_validation("SVM", "")
+    document_features = g.index_all_features_from_data_set(l.features_path)
+    model_for_query = g.get_chosen_model_for_queries(c.models_path,c.chosen_models,q.query_to_fold_index)
+    queries_budget, competitors, cost_index,first_competitor_features_per_query = g.create_budget_and_costs_for_data(c.final_score_path+"/final_score_combined.txt",10,0.3,model_for_query,document_features)
+    features_to_change = o.get_features_to_change(queries_budget,competitors,cost_index)
+    final_path = "../final_files"
+    o.rewrite_optimized_data_set(final_path,features_to_change,l.features_path,first_competitor_features_per_query,competitors)
+    ll = lfc.letor_folds_creator(final_path,final_path,True)
+    nc = cv.cross_validator(5,"",ll,"LTOR_OPT")
+    nc.k_fold_cross_validation("SVM","")
 
-    qs = g.get_chosen_model_for_queries(models_path,chosen_models,query_per_fold_index)
-    features = g.index_all_features_from_data_set("C:/study/knapsack_debug/normalized_features")
-    queries_budget, competitors, cost_index = g.create_budget_and_costs_for_data("C:/study/knapsack_debug/svm_model0.01.txt",10,0.3,qs,features)
-    for query in queries_budget:
-        budget = queries_budget[query]
-        for competitor in competitors[query]:
-            items=[]
-            try:
-                items = cost_index[query][competitor]
-            except:
-                continue
-            a=ka.knapsack(items,budget)
-            print(a.pack())"""
-    q = qtf.qtf("C:/study/letor")
-    f = lfc.letor_folds_creator("C:/study/letor","C:/study/letor_fixed1",q)
-    f.normalize_and_write_files()
 
