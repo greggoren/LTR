@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from scipy import spatial as sp
+#from scipy import spatial as sp
 import os
 class generic_budget_cost_creator(ABCMeta):
 
