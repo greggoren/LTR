@@ -5,7 +5,6 @@ from model_running import cross_validator as cv
 from seo import optimized_data_set_creator as odsc
 import sys
 if __name__ == "__main__":
-    print(sys.path)
     g = e.exponential_budget_cost_creator()
     q = qtf.qtf("C:/study/letor_fixed")
     q.create_query_to_fold_index()

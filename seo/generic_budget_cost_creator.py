@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 #from scipy import spatial as sp
 import os
-class generic_budget_cost_creator(ABCMeta):
-
+class generic_budget_cost_creator():
+    __metaclass__ = ABCMeta
     @abstractmethod
     def activation_func(self,input):
         pass
