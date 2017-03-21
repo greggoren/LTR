@@ -35,7 +35,7 @@ class generic_budget_cost_creator(ABCMeta):
         models_weight_index = {}
         model_wheights_per_fold = {}
         for fold in chosen_models:
-            chosen_model_file = models_path + "/" + fold + "/" + chosen_models[fold]
+            chosen_model_file = chosen_models[fold]#models_path + "/" + fold + "/" + chosen_models[fold]
             model_wheights_per_fold[fold] = []
             with open(chosen_model_file) as model_file:
                 for line in model_file:
@@ -65,7 +65,7 @@ class generic_budget_cost_creator(ABCMeta):
             budget += self.activation_func(delta)
         queries_budget[query_number] = fraction * budget
 
-    def get_diameter_documents(self,query_number,document_features):
+    """def get_diameter_documents(self,query_number,document_features):
         candidate_one = ""
         candidate_two = ""
         max_distance = 0.0
@@ -76,7 +76,7 @@ class generic_budget_cost_creator(ABCMeta):
                     max_distance = distance
                     candidate_one = document_one
                     candidate_two = document_two
-        return candidate_one,candidate_two
+        return candidate_one,candidate_two"""
 
 
     def create_budget_and_costs_for_data(self, score_file, number_of_competitors, fraction, model_for_query, document_features):#TODO: remove exceptions

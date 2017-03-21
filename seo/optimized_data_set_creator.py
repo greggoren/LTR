@@ -28,7 +28,7 @@ class files_rewriter:
                     with open(file_name) as data_set:
                         for data_record in data_set:
                             split_record = data_record.split()
-                            qid = split_record[1].split(":")[1]
+                            qid = int(split_record[1].split(":")[1])
                             record_length = len(split_record)
                             doc_id = split_record[record_length-1]
                             new_record = split_record[0]+" "+split_record[1]+" "

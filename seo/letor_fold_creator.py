@@ -8,8 +8,6 @@ class letor_folds_creator(fc.folds_creator):
         self.new_features_path = new_features_path
         self.working_path = new_features_path
         self.features_path = features_path
-        self.query_to_fold = query_to_fold
-        self.query_to_fold.create_query_to_fold_index()
         self.recovery_flag = recovery_flag
 
     def normalize_and_write_files(self):
