@@ -5,15 +5,19 @@ from model_running import cross_validator as cv
 from seo import optimized_data_set_creator as odsc
 import sys
 if __name__ == "__main__":
-    data_set_location = sys.argv[0]
-    final_path = sys.argv[1]
-    qrel_path = sys.argv[2]
+    data_set_location = sys.argv[1]
+    print data_set_location
+    new_data_set_location = sys.argv[2]
+    final_path = sys.argv[3]
+
+    qrel_path = sys.argv[4]
+
     g = e.exponential_budget_cost_creator()
     q = qtf.qtf(data_set_location)
     q.create_query_to_fold_index()
-    l = lfc.letor_folds_creator(data_set_location,data_set_location,q,True)
+    l = lfc.letor_folds_creator(data_set_location,new_data_set_location,True)
     o = odsc.files_rewriter()
-    c = cv.cross_validator(5,"",l,"LTOR")
+    c = cv.cross_validator(5,l,"LTOR")
     c.k_fold_cross_validation("SVM",qrel_path)
     document_features = g.index_all_features_from_data_set(l.features_path)
     model_for_query = g.get_chosen_model_for_queries(c.models_path,c.chosen_models,q.query_to_fold_index)

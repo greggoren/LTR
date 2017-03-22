@@ -3,8 +3,8 @@ import os
 from seo import query_to_fold as qtf
 
 class letor_folds_creator(fc.folds_creator):
-    def __init__(self,features_path,new_features_path,query_to_fold,recovery_flag):
-        fc.folds_creator.__init__(self)
+    def __init__(self,features_path,new_features_path,recovery_flag):
+        #fc.folds_creator.__init__(self)
         self.new_features_path = new_features_path
         self.working_path = new_features_path
         self.features_path = features_path
@@ -67,7 +67,9 @@ class letor_folds_creator(fc.folds_creator):
 
     def get(self,feature_index,length_of_features,query_doc_index):
         queries_seen = {}
-        file_name = os.path.basename(self.train_file)
+        final_file_name = os.path.basename(self.train_file)
+        file_name = os.path.basename(self.train_file).replace("txt","tmp")
+
         fold =os.path.basename(os.path.dirname(self.train_file))
         train_file_folder = self.new_features_path+"/"+fold
         if not os.path.exists(train_file_folder):
@@ -80,7 +82,6 @@ class letor_folds_creator(fc.folds_creator):
                 qid = train_record_splitted[1].split(":")[1]
                 if not queries_seen.get(qid,False):
                     queries_seen[qid]=0
-
                 index = queries_seen[qid]
                 doc_generated_name = query_doc_index[qid][index]
                 queries_seen[qid]=index+1
@@ -94,7 +95,10 @@ class letor_folds_creator(fc.folds_creator):
                 new_record += "# "+doc_generated_name+"\n"
                 new_feature_file.write(new_record)
             new_feature_file.close()
-
+            command = "sort -t ':' -nk 2,2 "  +train_file_folder + "/"+file_name+ ">" + train_file_folder + "/"+final_file_name
+            for line in self.run_command(command):
+                print line
+            os.remove(train_file_folder + "/"+file_name)
 
 
     def split_train_file_into_folds(self):

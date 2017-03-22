@@ -5,6 +5,7 @@ class qtf:
         self.query_to_fold_index ={}
 
     def create_query_to_fold_index(self):
+        print "creating query to fold index"
         for dir in os.walk(self.base_dir):
             if not dir[1]:
                 fold = os.path.basename(dir[0])
@@ -14,3 +15,4 @@ class qtf:
                         splited_data = test_record.split()
                         query_id = int(splited_data[1].split(":")[1])
                         self.query_to_fold_index[query_id] = fold
+        print "creation finished"

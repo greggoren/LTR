@@ -8,7 +8,7 @@ from model_running import folds_creator as fc
 
 
 class cross_validator:
-    def __init__(self,k,train_data,folds_creator,data_set,number_of_queries=-1,fold_prefix = "fold"):
+    def __init__(self,k,folds_creator,data_set,number_of_queries=-1,fold_prefix = "fold"):
         self.folds_creator = folds_creator# fc.folds_creator(k,train_data,number_of_queries,fold_prefix)
         self.folds_creator.split_train_file_into_folds()
         self.fold_prefix = fold_prefix
@@ -76,9 +76,11 @@ class cross_validator:
 
     def k_fold_cross_validation(self,model,query_relevance_file):
         test_score_files = []
-
+        print("w=", self.folds_creator.working_path)
         dirs = os.walk(self.folds_creator.working_path)
+
         result_dir = os.path.abspath(os.path.join(self.folds_creator.working_path,os.pardir))
+        print(result_dir)
         final_result_file_combined = result_dir + "/" + self.data_set + "/test_scores_trec_format/" + model+"/final_score_combined.tmp"
         for dir in dirs:
             if not dir[1]:#no subdirectories
