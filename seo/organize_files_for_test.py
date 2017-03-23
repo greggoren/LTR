@@ -17,13 +17,13 @@ if __name__=="__main__":
                 file_name = folders[0]+"/"+file
                 temp = folders[0]+"/temp.txt"
 
-                command = "sort -k2 "  + file_name+ " > " + temp
+                command = "sort -t ':' -nk 2,2 "  + file_name+ " > " + temp
 
                 for line in run_command(command):
                     print line
 
                 os.remove(file_name)
-                command=temp +" > "+file_name
+                command="cp temp.txt "+file_name
                 for line in run_command(command):
                     print line
                 os.remove(temp)

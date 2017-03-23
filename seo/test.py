@@ -19,14 +19,14 @@ if __name__ == "__main__":
     o = odsc.files_rewriter()
     c = cv.cross_validator(5,l,"LTOR")
     c.k_fold_cross_validation("SVM",qrel_path)
-    document_features = g.index_all_features_from_data_set(l.features_path)
+    """document_features = g.index_all_features_from_data_set(l.features_path)
     model_for_query = g.get_chosen_model_for_queries(c.models_path,c.chosen_models,q.query_to_fold_index)
     queries_budget, competitors, cost_index,first_competitor_features_per_query = g.create_budget_and_costs_for_data(c.final_score_path+"/final_score_combined.txt",10,0.3,model_for_query,document_features)
-    features_to_change = o.get_features_to_change(queries_budget,competitors,cost_index)
+    features_to_change = o.get_features_to_change(queries_budget,competitors,cost_index)"""
 
-    o.rewrite_optimized_data_set(final_path,features_to_change,l.features_path,first_competitor_features_per_query,competitors)
+    """o.rewrite_optimized_data_set(final_path,features_to_change,l.features_path,first_competitor_features_per_query,competitors)
     #ll = lfc.letor_folds_creator(final_path,final_path,True)
     #nc = cv.cross_validator(5,"",ll,"LTOR_OPT")
-    #nc.k_fold_cross_validation("SVM","")
+    #nc.k_fold_cross_validation("SVM","")"""
 
 
