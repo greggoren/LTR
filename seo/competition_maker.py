@@ -57,20 +57,23 @@ class competition_maker:
             budget_per_query = self.budget_creator.create_budget_per_query(self.fraction, document_feature_index)
             cost_index,value_for_change = self.budget_creator.create_items_for_knapsack(competitors, document_feature_index,model_weights_per_fold_index,self.query_per_fold)
             features_to_change = self.get_features_to_change(budget_per_query,competitors,cost_index)
-            document_feature_index = self.update_competitors(features_to_change,document_feature_index,value_for_change)
+            document_feature_index = self.update_competitors(features_to_change,deepcopy(document_feature_index),value_for_change)
             competitors_new = self.get_new_rankings(document_feature_index,model_weights_per_fold_index,self.query_per_fold,deepcopy(competitors))
-
+            number_of_time_winner_changed = 0
             denominator = 0
             for query in competitors_new:
                 old_rank = self.transition_to_rank_vector(query,reference_of_indexes,competitors[query])
                 new_rank = self.transition_to_rank_vector(query,reference_of_indexes,competitors_new[query])
+                if old_rank.index(1)!=new_rank.index(1):
+                    number_of_time_winner_changed += 1
                 kendall_tau,p_value = kt(old_rank,new_rank)
                 if not math.isnan(kendall_tau):
                     sum_of_kendalltau+=kendall_tau
                     denominator += 1
-
+            print "number of times winner changed ",number_of_time_winner_changed
 
             average = sum_of_kendalltau/denominator
+
             x_axis.append(iteration+1)
             y_axis.append(average)
             competitors = deepcopy(competitors_new)
@@ -79,17 +82,21 @@ class competition_maker:
         plt.clf()
 
     def get_new_rankings(self,document_features,model_weights,query_per_fold,competitors):
-
+        new_competitors={}
         for query in document_features:
             doc_scores={}
+            weights = model_weights[query_per_fold[query]]
             for doc in document_features[query]:
                 doc_features = document_features[query][doc]
-                weights = model_weights[query_per_fold[query]]
                 score = self.dot_product(doc_features,weights)
                 doc_scores[doc]=score
-            sorted_ranking = sorted(doc_scores,key=doc_scores.__getitem__)
-            competitors[query] = sorted_ranking
-        return competitors
+
+            sorted_ranking = sorted(doc_scores,key=doc_scores.__getitem__,reverse=True)
+            if query==1:
+                print doc_scores
+                print sorted_ranking
+            new_competitors[query] = sorted_ranking
+        return new_competitors
 
 
 

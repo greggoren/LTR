@@ -44,7 +44,7 @@ if __name__ == "__main__":
         chosen_models = g.recover_models_per_fold("C:/study/simulation_data/models/SVM",
                                                   "C:/study/simulation_data/test_scores_trec_format/SVM/")
 
-        c = cm.competition_maker(5,g,score_file,10,data_set_location,0.0001,chosen_models ,q.query_to_fold_index)
+        c = cm.competition_maker(5,g,score_file,10,data_set_location,0.1,chosen_models ,q.query_to_fold_index)
         c.competition(cost_model)
 
 

@@ -104,17 +104,25 @@ class generic_budget_cost_creator():
         for fold in chosen_models:
             chosen_model_file = chosen_models[fold]
             model_wheights_per_fold[fold] = []
+            indexes_covered = []
             with open(chosen_model_file) as model_file:
                 for line in model_file:
                     if line.__contains__(":"):
                         wheights = line.split()
                         wheights_length = len(wheights)
+
                         for index in range(1, wheights_length-1):
+
                             feature_id = int(wheights[index].split(":")[0])
                             if index < feature_id:
                                 for repair in range(index,feature_id):
+                                    if repair in indexes_covered:
+                                        continue
                                     model_wheights_per_fold[fold].append(0)
+                                    indexes_covered.append(repair)
                             model_wheights_per_fold[fold].append(float(wheights[index].split(":")[1]))
+                            indexes_covered.append(feature_id)
+            print(fold ,model_wheights_per_fold[fold])
         print "weights index ended"
         return model_wheights_per_fold
 
