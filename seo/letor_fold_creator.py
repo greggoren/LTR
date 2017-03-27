@@ -4,7 +4,6 @@ from seo import query_to_fold as qtf
 
 class letor_folds_creator(fc.folds_creator):
     def __init__(self,features_path,new_features_path,recovery_flag):
-        #fc.folds_creator.__init__(self)
         self.new_features_path = new_features_path
         self.working_path = new_features_path
         self.features_path = features_path
@@ -89,7 +88,7 @@ class letor_folds_creator(fc.folds_creator):
                 for index in range(2, length_of_features):
                     feature = train_record_splitted[index].split(":")[0]
                     feature_value = train_record_splitted[index].split(":")[1]
-                    new_value = round(self.change_to_normalized_value(feature_index, feature, feature_value),5)
+                    new_value = self.change_to_normalized_value(feature_index, feature, feature_value)
                     new_record += str(feature) + ":" + str(new_value) + " "
 
                 new_record += "# "+doc_generated_name+"\n"
