@@ -73,18 +73,24 @@ class generic_budget_cost_creator():
                     max_distance = distance
                     candidate_one = document_one
                     candidate_two = document_two
-        return candidate_one,candidate_two
+        return candidate_one,candidate_two,max_distance
 
 
 
     def create_budget_per_query(self,fraction,competitor_features):
         print "creating budget per query"
         budget_per_query = {}
+        sum_of_distances = 0
+        denominator = 0
         for query in competitor_features:
-            doc_one,doc_two = self.get_diameter_documents(query,competitor_features)
+            doc_one,doc_two,max_distance= self.get_diameter_documents(query,competitor_features)
             if doc_two != "" and doc_one != "":
                 budget_per_query[query] = fraction*self.get_budget(query,doc_one,doc_two,competitor_features)
-        return budget_per_query
+                sum_of_distances+=max_distance
+                denominator+=1
+            else:
+                budget_per_query[query] = 0
+        return budget_per_query,sum_of_distances/denominator
 
 
     def get_budget(self,query,doc_one,doc_two,document_features):
@@ -122,7 +128,6 @@ class generic_budget_cost_creator():
                                     indexes_covered.append(repair)
                             model_wheights_per_fold[fold].append(float(wheights[index].split(":")[1]))
                             indexes_covered.append(feature_id)
-            print(fold ,model_wheights_per_fold[fold])
         print "weights index ended"
         return model_wheights_per_fold
 

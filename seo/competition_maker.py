@@ -25,7 +25,6 @@ class competition_maker:
                 items = cost_index[query][competitor]
                 packer = ka.knapsack(items, budget)
                 features =[feature[0] for feature in packer.pack()]
-
                 features_to_change[query][competitor] = features
         return features_to_change
 
@@ -43,60 +42,106 @@ class competition_maker:
         return competitors_features
 
     def competition(self,cost_model):
-
+        results = {}
+        query_tagged ={}
         competitors = self.budget_creator.get_competitors_for_query(self.score_file, self.number_of_competitors)
         reference_of_indexes = deepcopy(competitors)
         document_feature_index = self.budget_creator.index_features_for_competitors(competitors,self.data_set_location,True)
         model_weights_per_fold_index = self.budget_creator.get_chosen_model_weights_for_fold(self.chosen_models)
         x_axis =[]
         y_axis = []
+        changed_winner_averages =[]
+        average_distances = []
+        original_reference = []
+        budget_per_query, average_distance = self.budget_creator.create_budget_per_query(self.fraction,
+                                                                                         document_feature_index)
         for iteration in range(0,self.num_of_iterations):
             print "iteration number ",iteration+1
             sum_of_kendalltau = 0
-
-            budget_per_query = self.budget_creator.create_budget_per_query(self.fraction, document_feature_index)
+            dummy_var ,average_distance = self.budget_creator.create_budget_per_query(self.fraction,document_feature_index)
             cost_index,value_for_change = self.budget_creator.create_items_for_knapsack(competitors, document_feature_index,model_weights_per_fold_index,self.query_per_fold)
             features_to_change = self.get_features_to_change(budget_per_query,competitors,cost_index)
             document_feature_index = self.update_competitors(features_to_change,deepcopy(document_feature_index),value_for_change)
-            competitors_new = self.get_new_rankings(document_feature_index,model_weights_per_fold_index,self.query_per_fold,deepcopy(competitors))
+            competitors_new,query_tagged = self.get_new_rankings(document_feature_index,model_weights_per_fold_index,self.query_per_fold,budget_per_query,deepcopy(competitors),deepcopy(query_tagged))
             number_of_time_winner_changed = 0
             denominator = 0
+            sum_of_original_kt=0
             for query in competitors_new:
                 old_rank = self.transition_to_rank_vector(query,reference_of_indexes,competitors[query])
                 new_rank = self.transition_to_rank_vector(query,reference_of_indexes,competitors_new[query])
-                if old_rank.index(1)!=new_rank.index(1):
-                    number_of_time_winner_changed += 1
+                orig_rank = self.transition_to_rank_vector(query,reference_of_indexes,reference_of_indexes[query])
+
                 kendall_tau,p_value = kt(old_rank,new_rank)
+                if query == 29977:
+                    print "budget ",budget_per_query[query]
+                    print "old ", old_rank
+                    print "new ", new_rank
                 if not math.isnan(kendall_tau):
                     sum_of_kendalltau+=kendall_tau
                     denominator += 1
+                    if old_rank.index(1) != new_rank.index(1):
+                        number_of_time_winner_changed += 1
+                        """if iteration+1 >= 18:
+                            print "query ",query
+                            print "budget  ",budget_per_query[query]
+                            print "old ", old_rank
+                            print "new ", new_rank"""
+                original_kt,p_val = kt(new_rank,orig_rank)
+                if not math.isnan(original_kt):
+                    sum_of_original_kt += original_kt
             print "number of times winner changed ",number_of_time_winner_changed
 
             average = sum_of_kendalltau/denominator
-
+            average_distances.append(average_distance)
+            changed_winner_averages.append(float(number_of_time_winner_changed)/denominator)
             x_axis.append(iteration+1)
             y_axis.append(average)
+            original_reference.append(float(sum_of_original_kt)/denominator)
             competitors = deepcopy(competitors_new)
-        plt.plot(x_axis,y_axis)
-        plt.savefig(cost_model+".png")
-        plt.clf()
 
-    def get_new_rankings(self,document_features,model_weights,query_per_fold,competitors):
+        results["kendall"]=(x_axis,y_axis)
+        results["cos"] = (x_axis,average_distances)
+        results["winner"] = (x_axis,changed_winner_averages)
+        results["orig"] =(x_axis,original_reference)
+        meta_results = {}
+        meta_results[self.budget_creator.model] = results
+        return meta_results
+
+
+    def get_new_rankings(self,document_features,model_weights,query_per_fold,budget_per_query,competitors,query_tagged):
         new_competitors={}
         for query in document_features:
-            doc_scores={}
-            weights = model_weights[query_per_fold[query]]
-            for doc in document_features[query]:
-                doc_features = document_features[query][doc]
-                score = self.dot_product(doc_features,weights)
-                doc_scores[doc]=score
-
-            sorted_ranking = sorted(doc_scores,key=doc_scores.__getitem__,reverse=True)
-            if query==1:
-                print doc_scores
-                print sorted_ranking
-            new_competitors[query] = sorted_ranking
-        return new_competitors
+            if budget_per_query[query]>0:
+                doc_scores={}
+                weights = model_weights[query_per_fold[query]]
+                for doc in document_features[query]:
+                    doc_features = document_features[query][doc]
+                    score = self.dot_product(doc_features,weights)
+                    doc_scores[doc]=score
+                sorted_ranking = sorted(doc_scores,key=doc_scores.__getitem__,reverse=True)
+                if query == 29977:
+                    print doc_scores
+                length_of_rankings = len(sorted_ranking)
+                if doc_scores[sorted_ranking[0]]==doc_scores[sorted_ranking[length_of_rankings-1]]:
+                    if not query_tagged.get(query,False):
+                        query_tagged[query]=(doc_scores[sorted_ranking[0]],doc_scores[sorted_ranking[length_of_rankings-1]])
+                    elif query_tagged[query][0]==doc_scores[sorted_ranking[0]] and query_tagged[query][0]==doc_scores[sorted_ranking[length_of_rankings-1]]:
+                        new_competitors[query]=competitors[query]
+                        continue
+                    else:
+                        query_tagged.pop(query,None)
+                elif doc_scores[sorted_ranking[0]]==doc_scores[sorted_ranking[1]]:
+                    if not query_tagged.get(query,False):
+                        query_tagged[query] = (doc_scores[sorted_ranking[0]],doc_scores[sorted_ranking[length_of_rankings-1]])
+                    elif query_tagged[query][0]==doc_scores[sorted_ranking[0]] and query_tagged[query][1]==doc_scores[sorted_ranking[length_of_rankings-1]]:
+                        new_competitors[query] = competitors[query]
+                        continue
+                    else:
+                        query_tagged.pop(query, None)
+                new_competitors[query] = sorted_ranking
+            else:
+                new_competitors[query]=competitors[query]
+        return new_competitors,query_tagged
 
 
 

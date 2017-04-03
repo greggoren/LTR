@@ -11,11 +11,15 @@ class knapsack:
         wt = val = 0
         bagged = []
         for unit_value, amount, name in sorted_items:
-            portion = min(self.MAXWT - wt, amount)
-            wt  += portion
+
+            portion = amount
+            wt += portion
+            if wt >= self.MAXWT:
+                wt -= portion
+                continue
+
             addval  = portion * unit_value
             val    += addval
             bagged += [(name, portion, addval)]
-            if wt >= self.MAXWT:
-                break
+
         return bagged

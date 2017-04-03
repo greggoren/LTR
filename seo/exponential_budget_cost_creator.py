@@ -2,8 +2,8 @@ import seo.generic_budget_cost_creator as gbcc
 #import numpy as np
 import math
 class exponential_budget_cost_creator(gbcc.generic_budget_cost_creator):
-    def __init__(self):
-        print()
+    def __init__(self,model):
+        self.model = model
 
     def activation_func(self,input):
         """sign = 1
