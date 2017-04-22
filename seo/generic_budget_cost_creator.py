@@ -1,6 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from scipy import spatial as sp
 import os
+from copy import copy
+import numpy as np
+import cPickle as cp
+from math import sqrt
 class generic_budget_cost_creator():
     __metaclass__ = ABCMeta
 
@@ -68,29 +72,36 @@ class generic_budget_cost_creator():
         max_distance = 0.0
         for document_one in document_features[query_number]:
             for document_two in document_features[query_number]:
-                distance = sp.distance.cosine(document_features[query_number][document_one],document_features[query_number][document_two])
+                distance = self.cosine_dist(document_features[query_number][document_one],document_features[query_number][document_two])
                 if distance > max_distance:
                     max_distance = distance
                     candidate_one = document_one
                     candidate_two = document_two
         return candidate_one,candidate_two,max_distance
 
+    def square_rooted(self,x):
+        return sqrt(sum([a * a for a in x]))
 
+    def cosine_dist(self,x, y):
+        numerator = sum(a * b for a, b in zip(x, y))
+
+        denominator = self.square_rooted(x) * self.square_rooted(y)
+        return 1 - numerator / float(denominator)
 
     def create_budget_per_query(self,fraction,competitor_features):
         print "creating budget per query"
-        budget_per_query = {}
+        #budget_per_query = {}
         sum_of_distances = 0
         denominator = 0
         for query in competitor_features:
             doc_one,doc_two,max_distance= self.get_diameter_documents(query,competitor_features)
             if doc_two != "" and doc_one != "":
-                budget_per_query[query] = fraction*self.get_budget(query,doc_one,doc_two,competitor_features)
+                #budget_per_query[query] = fraction*self.get_budget(query,doc_one,doc_two,competitor_features)
                 sum_of_distances+=max_distance
                 denominator+=1
-            else:
-                budget_per_query[query] = 0
-        return budget_per_query,sum_of_distances/denominator
+            #else:
+                #budget_per_query[query] = 0
+        return sum_of_distances/denominator
 
 
     def get_budget(self,query,doc_one,doc_two,document_features):
@@ -141,7 +152,7 @@ class generic_budget_cost_creator():
                 chosen_model[fold_number]=model_file
         return chosen_model
 
-    def create_items_for_knapsack(self,competitors,features_index,model_weights_index,query_to_fold):
+    def create_items_for_knapsack(self,competitors,features_index,model_weights_index,query_to_fold,original_vectors):
         print "creating items for bag"
         cost_index = {}
         value_for_change = {}
@@ -154,21 +165,33 @@ class generic_budget_cost_creator():
             for competitor in competitors_list:
                 features_value_and_weight = []
                 competitor_features = features_index[query][competitor]
-
+                original_vector = original_vectors[query][competitor]
+                #all_possible_single_changes = self.get_all_possible_single_changes(competitor_features,first_competitor_features)
+                #costs = self.activation_func((all_possible_single_changes,[original_vector]))
                 for index in range(0,length_of_features):
-                    cost = self.activation_func(first_competitor_features[index] - competitor_features[index])
-                    value = model_weights_index[query_to_fold[query]][index]*(first_competitor_features[index] - competitor_features[index])
 
+                    value = model_weights_index[query_to_fold[query]][index]*(first_competitor_features[index] - competitor_features[index])
                     if value > 0:
+                        #input = (index, first_competitor_features, copy(competitor_features), original_vector)
+                        cost = 1#self.activation_func(input)
                         features_value_and_weight.append((index, cost, value))
+
                 cost_index[query][competitor]=features_value_and_weight
+        print "items creation ended"
         return cost_index,value_for_change
 
 
 
 
 
-
+    def get_all_possible_single_changes(self,current_vec,winner_vec):
+        list_of_vectors=[]
+        length = len(current_vec)
+        for index in range(0,length):
+            temp = copy(current_vec)
+            temp[index]=winner_vec[index]
+            list_of_vectors.append(temp)
+        return list_of_vectors
 
 
 

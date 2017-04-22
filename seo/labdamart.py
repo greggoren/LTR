@@ -11,7 +11,7 @@ if __name__=="__main__":
     new_data_set_location = sys.argv[2]
 
     qrel_path = sys.argv[3]
-
+    print qrel_path
 
     q = qtf.qtf(data_set_location)
     q.create_query_to_fold_index()

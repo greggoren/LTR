@@ -14,5 +14,5 @@ if __name__ == "__main__":
                             qid = splited[1].split(":")[1]
                             doc = splited[length-1]
                             relevance = splited[0]
-                            qrels.write(qid+"\t"+"0\t"+doc+"\t"+relevance+"\n")
+                            qrels.write(qid+" "+"0 "+doc+" "+relevance+"\n")
             qrels.close()
