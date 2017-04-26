@@ -1,10 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from scipy import spatial as sp
 import os
 from copy import copy
-import numpy as np
-import cPickle as cp
 from math import sqrt
+import pandas as pd
 class generic_budget_cost_creator():
     __metaclass__ = ABCMeta
 
@@ -14,7 +12,6 @@ class generic_budget_cost_creator():
 
     def get_competitors_for_query(self,score_file,number_of_competitors):
         competitors = {}
-
         queries_finished = {}
         with open(score_file) as scores_data:
             for score_record in scores_data:
@@ -65,6 +62,30 @@ class generic_budget_cost_creator():
                 print "feature index creation ended"
                 return document_feature_index
 
+    def get_the_perfect_feature_vector_from_competitors(self,document_features,chosen_models,qtf):
+        print "getting perfect vector"
+        chosen_vecors={}
+        length = 0
+        opt = True
+        for query in document_features:
+            list_of_vectors = []
+            for competitor in document_features[query]:
+                if opt:
+                    length, opt = len(document_features[query][competitor]), False
+                list_of_vectors.append(document_features[query][competitor])
+            labels = range(1,  length+ 1)
+            df = pd.DataFrame.from_records(list_of_vectors,columns=labels)
+            chosen_vector = []
+            for label in labels:
+                relevant_weight = chosen_models[qtf[query]][label-1]
+                if relevant_weight >= 0:
+                    wanted_value = df[label].max()
+                else:
+                    wanted_value = df[label].min()
+                chosen_vector.append(wanted_value)
+            chosen_vecors[query]=chosen_vector
+        print "finished perfect vectors creation"
+        return chosen_vecors
 
     def get_diameter_documents(self,query_number,document_features):
         candidate_one = ""
@@ -154,13 +175,14 @@ class generic_budget_cost_creator():
 
     def create_items_for_knapsack(self,competitors,features_index,model_weights_index,query_to_fold,original_vectors):
         print "creating items for bag"
+        value_for_change = self.get_the_perfect_feature_vector_from_competitors(features_index,model_weights_index,query_to_fold)
         cost_index = {}
-        value_for_change = {}
+        #value_for_change = {}
         for query in competitors:
             cost_index[query] = {}
             competitors_list = competitors[query]
-            first_competitor_features = features_index[query][competitors_list[0]]
-            value_for_change[query]=first_competitor_features
+            first_competitor_features = value_for_change[query]#features_index[query][competitors_list[0]]
+            #value_for_change[query]=first_competitor_features
             length_of_features = len(first_competitor_features)
             for competitor in competitors_list:
                 features_value_and_weight = []

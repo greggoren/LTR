@@ -13,7 +13,7 @@ from functools import partial
 import matplotlib.pyplot as plt
 def simulation(chosen_models,data_set_location,query_to_fold_index,score_file,budget_creator):
 
-    c = cm.competition_maker(12, budget_creator,score_file, 10, data_set_location, 0.1, chosen_models, query_to_fold_index)
+    c = cm.competition_maker(6, budget_creator,score_file, 10, data_set_location, 0.1, chosen_models, query_to_fold_index)
     return c.competition(budget_creator.model)
 
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
             ax.plot(cos_stats[0], cos_stats[1], 'r',label="0.1")
         else:
             ax.plot(cos_stats[0], cos_stats[1], 'b',label="0.05")
-    plt.savefig("cos_dist.jpg")
+    plt.savefig("number_of_features.jpg")
     plt.clf()
 """data_set_location = sys.argv[1]
     print data_set_location

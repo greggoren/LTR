@@ -83,7 +83,7 @@ class competition_maker:
             document_feature_index = self.update_competitors(features_to_change,cp.loads(cp.dumps(document_feature_index,-1)),value_for_change)
             print "update complete"
             print "getting new rankings"
-            competitors_new= self.get_new_rankings(document_feature_index,model_weights_per_fold_index,self.query_per_fold)
+            competitors_new= self.get_new_rankings(reference_of_indexes,document_feature_index,model_weights_per_fold_index,self.query_per_fold)
             print "finished new rankings"
             number_of_time_winner_changed = 0
             denominator = 0
@@ -137,16 +137,18 @@ class competition_maker:
         return meta_results
 
 
-    def get_new_rankings(self,document_features,model_weights,query_per_fold):
+    def get_new_rankings(self,original_ranks,document_features,model_weights,query_per_fold):
         new_competitors={}
         for query in document_features:
             doc_scores = {}
             weights = model_weights[query_per_fold[query]]
+            original_rank = original_ranks[query]
             for doc in document_features[query]:
                 doc_features = document_features[query][doc]
                 score = self.dot_product(doc_features, weights)
                 doc_scores[doc] = score
-            sorted_ranking = sorted(doc_scores, key=lambda x:(doc_scores[x],x), reverse=True)
+
+            sorted_ranking = sorted(original_rank, key=lambda x:(doc_scores[x]), reverse=True)
             new_competitors[query] = sorted_ranking
         return new_competitors
 

@@ -7,6 +7,7 @@ from scipy import spatial as sp
 import cPickle as cp
 from copy import copy
 import time
+import pandas as pd
 from math import *
 
 
@@ -22,8 +23,12 @@ def cosine_dist(x, y):
     return 1-numerator / float(denominator)
 
 if __name__=="__main__":
-    dict = {'a':2,'b':2,'c':1}
-    print sorted(dict,key=lambda x: (dict[x],x),reverse=True)
+    a=["a","d","k"]
+    d={"a":1,"k":2,"d":2}
+    sorted_ranking =sorted(a, key=lambda x: (d[x]), reverse=True)
+    print(sorted_ranking)
+    """dict = {'a':2,'b':2,'c':1}
+    print sorted(dict,key=lambda x: (dict[x],x),reverse=True)"""
     """A=[1,2,3]
     begin = time.time()
     a,c,v=0,0,0
