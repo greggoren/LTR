@@ -7,7 +7,8 @@ if __name__ == "__main__":
 
     data_set_location = "/lv_local/home/sgregory/letor"
     new_data_set_location = "/lv_local/home/sgregory/letor_fixed1"
-    l = lfc.letor_folds_creator(data_set_location,new_data_set_location,False)
-    l.split_train_file_into_folds()
+    l = lfc.letor_folds_creator(data_set_location,new_data_set_location,True)
+    c = cv.cross_validator(5,l,new_data_set_location)
+    c.k_fold_cross_validation("SVM","qrels")
 
 
