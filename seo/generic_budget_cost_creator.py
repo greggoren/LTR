@@ -62,19 +62,25 @@ class generic_budget_cost_creator():
                 print "feature index creation ended"
                 return document_feature_index
 
-    def get_the_perfect_feature_vector_from_competitors(self,document_features,chosen_models,qtf):
+    def get_the_perfect_feature_vector_from_competitors(self,competitors,document_features,chosen_models,qtf):
         print "getting perfect vector"
         chosen_vecors={}
         length = 0
         opt = True
         for query in document_features:
+            competitors_list = competitors[query]
             list_of_vectors = []
             for competitor in document_features[query]:
                 if opt:
                     length, opt = len(document_features[query][competitor]), False
+                list_of_vectors.append(competitor)
                 list_of_vectors.append(document_features[query][competitor])
-            labels = range(1,  length+ 1)
+            labels=[]
+            labels.append("competitor")
+            labels.extend(range(1,  length+ 1))
             df = pd.DataFrame.from_records(list_of_vectors,columns=labels)
+            for competitor in competitors_list:
+                ""
             chosen_vector = []
             for label in labels:
                 relevant_weight = chosen_models[qtf[query]][label-1]
